@@ -1,0 +1,107 @@
+name: AWS CD
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - feature/deploy
+
+jobs:
+  DeployToAWS:
+    environment:
+      name: ${{ github.ref_name == 'feature/deploy' && 'develop' || github.ref_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Region and Stage
+        run: |
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
+          if [[ "${{ github.ref_name }}" == "develop" || "${{ github.ref_name }}" == "feature/deploy" ]]; then
+            echo "AWS_REGION=sa-east-1" >> $GITHUB_ENV
+            echo "STAGE=dev" >> $GITHUB_ENV
+
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
+            echo "STAGE=prod" >> $GITHUB_ENV
+
+          else
+            echo "Invalid branch name!" && exit 1
+          fi
+
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+          role-session-name: github-action
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Setting stack name
+        run: |
+          echo "STACK_NAME=BlickWebStackFront${{ env.STAGE }}" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+        env:
+          VITE_STAGE: ${{ env.STAGE }}
+
+      - name: Install CDK Dependencies
+        run: |
+          npm install -g aws-cdk
+          cd iac
+          npm install
+
+      - name: Setup CDK envs
+        run: |
+          echo AWS_REGION=${{ env.AWS_REGION }} >> $GITHUB_ENV
+          echo AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} >> $GITHUB_ENV
+          echo STACK_NAME=${{ env.STACK_NAME }} >> $GITHUB_ENV
+          echo GITHUB_REF_NAME=${{ env.STAGE }} >> $GITHUB_ENV
+
+      - name: Deploy with CDK
+        run: |
+          cd iac
+          cdk synth
+          cdk deploy --require-approval never
+
+      - name: Get S3 Bucket Name
+        run: |
+          AWS_BUCKET=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BlickWebBucketName${{ env.STAGE }}'].OutputValue" \
+            --output text)
+          echo "AWS_BUCKET=$AWS_BUCKET" >> $GITHUB_ENV
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp dist s3://${{ env.AWS_BUCKET }}/ --recursive --region ${{ env.AWS_REGION }}
+
+      - name: Get Amplify App ID
+        run: |
+          AMPLIFY_APP_ID=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BlickWebAmplifyAppId${{ env.STAGE }}'].OutputValue" \
+            --output text)
+          echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> $GITHUB_ENV
+
+      - name: Get Amplify Domain
+        run: |
+          AMPLIFY_DOMAIN=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BlickWebAmplifyDomain${{ env.STAGE }}'].OutputValue" \
+            --output text)
+          echo "AMPLIFY_DOMAIN=$AMPLIFY_DOMAIN" >> $GITHUB_ENV
+          echo "### Deploy concluído!" >> $GITHUB_STEP_SUMMARY
+          echo "**URL do Amplify:** https://$AMPLIFY_DOMAIN" >> $GITHUB_STEP_SUMMARY
