@@ -6,12 +6,12 @@ export default function Home() {
     return (
         <div className='flex flex-col min-h-screen bg-[#16191C]'>
             <Header />
-            <div className="flex flex-col p-6 items-center text-center">
+            <div className="flex flex-col p-6 items-center text-center mt-25">
                 <h1 className="text-6xl font-bold text-white w-3/5 mb-8">
-                    MONITORAMENTO INTELIGENTE DE PRAGAS PARA UMA AGRICULTURA DE PRECISÃO
+                    DIAGNÓSTICO CONTÍNUO DA SAÚDE DA SUA PLANTAÇÃO
                 </h1>
                 <p className="text-[#8A898B] text-2xl w-3/5 mb-10">
-                    O Blick integra hardware IoT, inteligência artificial e uma interface intuitiva para que você tenha controle total sobre a saúde da sua plantação - antes que seja tarde.
+                    O Blick combina um carrinho autônomo de inspeção, visão computacional e uma interface clínica para detectar pragas, deficiências nutricionais e estresse hídrico - antes que se tornem prejuízo.
                 </p>
                 <button className="btn bg-[#4A9B9A] hover:bg-[#316868] font-semibold py-4 px-8 rounded text-black mb-20">
                     COMEÇAR AGORA →
