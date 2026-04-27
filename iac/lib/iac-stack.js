@@ -13,7 +13,7 @@ class IacStack extends cdk.Stack {
     cdk.Tags.of(this).add('environment', 'GRADUACAO')
     cdk.Tags.of(this).add('project', 'TCC')
     cdk.Tags.of(this).add('group', 'CMD04')
-    cdk.Tags.of(this).add('creator', 'MAUROROCHA_22006672')
+    cdk.Tags.of(this).add('creator', 'LUCASCRAPINO_22006672')
     cdk.Tags.of(this).add('owner', 'BOSSINI')
 
     const s3Bucket = new s3.Bucket(this, 'BlickWebBucket' + stage, {
