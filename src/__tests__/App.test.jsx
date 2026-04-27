@@ -1,10 +1,18 @@
 import { render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import App from '../App'
+import { MemoryRouter } from 'react-router'
+import Home from '../pages/home'
 
 test('Deve renderizar o título principal do ecossistema BLICK', () => {
-  render(<App />)
-  
-  const titleElement = screen.getByRole('heading', { level: 1, name: /BLICK/i })
+  render(
+    <MemoryRouter>
+      <Home />
+    </MemoryRouter>
+  )
+
+  const titleElement = screen.getByRole('heading', {
+    level: 1,
+    name: /MONITORAMENTO INTELIGENTE/i
+  })
   expect(titleElement).toBeDefined()
 })
