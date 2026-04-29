@@ -8,12 +8,13 @@ class IacStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props)
 
-    const stage = process.env.GITHUB_REF_NAME || 'dev'
+    const rawStage = process.env.GITHUB_REF_NAME || 'dev'
+    const stage = rawStage.replace(/[^a-zA-Z0-9_+=,.@-]/g, '_')
 
     cdk.Tags.of(this).add('environment', 'GRADUACAO')
     cdk.Tags.of(this).add('project', 'TCC')
     cdk.Tags.of(this).add('group', 'CMD04')
-    cdk.Tags.of(this).add('creator', 'LUCASCRAPINO_22006672')
+    cdk.Tags.of(this).add('creator', 'MAUROROCHA_22006672')
     cdk.Tags.of(this).add('owner', 'BOSSINI')
 
     const s3Bucket = new s3.Bucket(this, 'BlickWebBucket' + stage, {
@@ -70,7 +71,7 @@ class IacStack extends cdk.Stack {
       {
         appId: amplifyApp.attrAppId,
         branchName: stage === 'prod' ? 'main' : 'develop',
-        enableAutoBuild: false,
+        enableAutoBuild: false, // Build feito pelo GitHub Actions
         stage: stage === 'prod' ? 'PRODUCTION' : 'DEVELOPMENT',
         tags: [
           { key: 'environment', value: 'GRADUACAO' },
