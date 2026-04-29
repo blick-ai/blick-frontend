@@ -1,7 +1,11 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
+import { Link } from "react-router"
 
 export default function Login() {
     const [show, setShow] = useState(false)
+    const navigate = useNavigate()
+
     return (
         <div className="flex flex-row min-h-screen bg-[#16191C]">
             <div className="w-1/2 flex items-center justify-center px-20">
@@ -34,9 +38,15 @@ export default function Login() {
                             </button>
                         </div>
                     </div>
-                    <button className="bg-[#4EC5C1] hover:bg-[#3A9A97] text-black font-bold py-2 px-4 rounded h-15">
+                    <button className="bg-[#4EC5C1] hover:bg-[#3A9A97] text-black font-bold py-2 px-4 rounded h-15 mb-3" onClick={() => navigate("/dashboard")}>
                         ENTRAR
                     </button>
+                    <div className="flex flex-col items-center">
+                        <div className="flex flex-row gap-2 items-baseline">
+                        <p className="text-[#8A898B] text-2xl">Não tem uma conta?</p>
+                        <Link className="text-[#4EC5C1] text-2xl" to="/">Conheça o Blick</Link>
+                    </div>
+                    </div>
                 </div>
             </div>
             <div className="w-1/2 relative min-h-screen">

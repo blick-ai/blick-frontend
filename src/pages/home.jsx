@@ -1,8 +1,12 @@
+import { useNavigate } from "react-router"
+
 import Header from "../components/header"
 import Showcase from "../components/showcase"
 import Step from "../components/step"
 
 export default function Home() {
+    const navigate = useNavigate()
+
     return (
         <div className='flex flex-col min-h-screen bg-[#16191C]'>
             <Header />
@@ -13,7 +17,7 @@ export default function Home() {
                 <p className="text-[#8A898B] text-2xl w-3/5 mb-10">
                     O Blick combina um carrinho autônomo de inspeção, visão computacional e uma interface clínica para detectar pragas, deficiências nutricionais e estresse hídrico - antes que se tornem prejuízo.
                 </p>
-                <button className="btn bg-[#4A9B9A] hover:bg-[#316868] font-semibold py-4 px-8 rounded text-black mb-20">
+                <button className="btn bg-[#4A9B9A] hover:bg-[#316868] font-semibold py-4 px-8 rounded text-black mb-20" onClick={() => navigate("/login")}>
                     COMEÇAR AGORA →
                 </button>
                 <div className="flex flex-row flex-wrap justify-center items-stretch gap-8 w-full mb-8">
