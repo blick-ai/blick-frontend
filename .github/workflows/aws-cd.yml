@@ -37,7 +37,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-action
 
       - name: Use Node.js 22.x
