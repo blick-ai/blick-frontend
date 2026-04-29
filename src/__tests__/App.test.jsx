@@ -12,7 +12,7 @@ test('Deve renderizar o título principal do ecossistema BLICK', () => {
 
   const titleElement = screen.getByRole('heading', {
     level: 1,
-    name: /MONITORAMENTO INTELIGENTE/i
+    name: /DIAGNÓSTICO CONTÍNUO/i
   })
   expect(titleElement).toBeDefined()
 })
