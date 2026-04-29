@@ -1,10 +1,7 @@
-import { useState } from "react"
 import HealthBar from "./healthBar"
-
-export default function PlantPhoto({ image, id, location, distance, leaves, time, health }) {
-    const [selected, setSelected] = useState(false)
+export default function PlantPhoto({ image, id, location, distance, leaves, time, health, selected, onSelect }) {
     return (
-        <div className={`bg-[#16191C] border flex flex-row rounded-2xl p-4 gap-6 items-center w-full ${selected ? "border-[#4A9B9A]" : "border-[#8A898B]/25"}`}>
+        <div className={`bg-[#1B2125] border flex flex-row rounded-2xl p-4 gap-6 items-center w-full ${selected ? "border-[#4A9B9A]" : "border-[#8A898B]/25"}`}>
             <img src={image} className="h-20 w-auto rounded-xl object-cover" />
             <div className="flex flex-col gap-1 flex-1">
                 <div className="flex flex-row justify-between items-center">
@@ -28,7 +25,7 @@ export default function PlantPhoto({ image, id, location, distance, leaves, time
                     <HealthBar health={health} />
                     <button
                         type="button"
-                        onClick={() => setSelected(!selected)}
+                        onClick={onSelect}
                         className="text-[#8A898B] hover:text-white text-2xl font-bold"
                     >
                         &gt;
