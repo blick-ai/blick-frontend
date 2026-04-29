@@ -22,7 +22,7 @@ export default function Dashboard() {
                     healthCounts={{ healthy: 3, warning: 3, critical: 2 }}
                 />
                 <div className="flex flex-row gap-4 flex-1 min-h-0">
-                    <PhotoList selectedId={selectedPhoto?.id} onSelect={setSelectedPhoto} />
+                    <PhotoList selectedId={selectedPhoto?.id} onSelect={setSelectedPhoto} hasSelection={!!selectedPhoto} />
                     {selectedPhoto && (
                         <PlantHighlight
                             status={status}

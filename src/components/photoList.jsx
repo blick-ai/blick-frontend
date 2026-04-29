@@ -9,9 +9,10 @@ const photos = [
     { id: "IMG-2042", location: "Setor A1", distance: 14.6, leaves: 22, time: "14:29:34", health: 89, aphidPercentage: 4, nutritionPercentage: 85, hydrationPercentage: 92, found: "Nenhuma anomalia significativa detectada.", recommendations: "Manter manejo atual. Cultura em excelente estado." },
     { id: "IMG-2041", location: "Setor A1", distance: 14.0, leaves: 17, time: "14:29:08", health: 70, aphidPercentage: 18, nutritionPercentage: 68, hydrationPercentage: 60, found: "Coloração irregular em 4 folhas.\nLeve estresse hídrico.", recommendations: "Aumentar frequência de irrigação e monitorar nutrição." },
 ]
-export default function PhotoList({ selectedId, onSelect }) {
+
+export default function PhotoList({ selectedId, onSelect, hasSelection }) {
     return (
-        <div className="w-1/2 shrink-0 flex flex-col gap-2 overflow-y-auto">
+        <div className={`${hasSelection ? "w-1/2" : "w-full"} shrink-0 flex flex-col gap-2 overflow-y-auto`}>
             {photos.map((photo) => (
                 <PlantPhoto
                     key={photo.id}
