@@ -155,7 +155,7 @@ jobs:
 
       - name: Deploy to Amplify
         run: |
-          zip -r deploy.zip dist/
+          cd dist && zip -r ../deploy.zip . && cd ..
           aws amplify create-deployment \
             --app-id ${{ env.AMPLIFY_APP_ID }} \
             --branch-name ${{ env.STAGE == 'prod' && 'main' || 'develop' }} \
@@ -168,3 +168,5 @@ jobs:
             --branch-name ${{ env.STAGE == 'prod' && 'main' || 'develop' }} \
             --job-id $JOB_ID \
             --region ${{ env.AWS_REGION }}
+          echo "### ✅ Deploy concluído!" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **URL do Amplify:** https://$AMPLIFY_DOMAIN" >> $GITHUB_STEP_SUMMARY
