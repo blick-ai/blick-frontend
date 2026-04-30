@@ -46,7 +46,7 @@ jobs:
 
       - name: CDK Bootstrap
         run: |
-          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --require-approval never
+          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --require-approval never --force
 
   DeployToAWS:
     needs: Bootstrap
