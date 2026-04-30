@@ -8,8 +8,7 @@ class IacStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props)
 
-    const rawStage = process.env.GITHUB_REF_NAME || 'dev'
-    const stage = rawStage.replace(/[^a-zA-Z0-9_+=,.@-]/g, '_')
+    const stage = process.env.GITHUB_REF_NAME || 'dev'
 
     cdk.Tags.of(this).add('environment', 'GRADUACAO')
     cdk.Tags.of(this).add('project', 'TCC')
@@ -71,7 +70,7 @@ class IacStack extends cdk.Stack {
       {
         appId: amplifyApp.attrAppId,
         branchName: stage === 'prod' ? 'main' : 'develop',
-        enableAutoBuild: false, // Build feito pelo GitHub Actions
+        enableAutoBuild: false,
         stage: stage === 'prod' ? 'PRODUCTION' : 'DEVELOPMENT',
         tags: [
           { key: 'environment', value: 'GRADUACAO' },
