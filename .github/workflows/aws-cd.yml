@@ -8,7 +8,48 @@ on:
       - feature/deploy
 
 jobs:
+  Bootstrap:
+    environment:
+      name: ${{ github.ref_name == 'feature/deploy' && 'develop' || github.ref_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Region and Stage
+        run: |
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
+          if [[ "${{ github.ref_name }}" == "develop" || "${{ github.ref_name }}" == "feature/deploy" ]]; then
+            echo "AWS_REGION=sa-east-1" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
+          else
+            echo "Invalid branch name!" && exit 1
+          fi
+
+      - name: Setup AWS Credentials (Bootstrap Role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_BOOTSTRAP_ROLE_ARN }}
+          role-session-name: github-action-bootstrap
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      - name: CDK Bootstrap
+        run: |
+          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --require-approval never
+
   DeployToAWS:
+    needs: Bootstrap
     environment:
       name: ${{ github.ref_name == 'feature/deploy' && 'develop' || github.ref_name }}
     runs-on: ubuntu-latest
