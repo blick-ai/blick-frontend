@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
 import { Link } from "react-router"
+import logo from "../assets/images/logo-transparent.png"
+import aphid from "../assets/images/aphid.png"
 
 export default function Login() {
     const [show, setShow] = useState(false)
@@ -10,7 +12,7 @@ export default function Login() {
         <div className="flex flex-row min-h-screen bg-[#16191C]">
             <div className="w-1/2 flex items-center justify-center px-20">
                 <div className="flex flex-col gap-8 text-left">
-                    <img src="src/assets/images/logo-transparent.png" className="h-auto w-40 mb-8" />
+                    <img src={logo} className="h-auto w-40 mb-8" />
                     <p className="font-bold text-white text-4xl">Acesse sua conta</p>
                     <p className="text-[#8A898B] text-2xl mb-4">Diagnóstico contínuo da saúde do seu cultivo</p>
                     <div className="flex flex-col gap-3">
@@ -43,15 +45,15 @@ export default function Login() {
                     </button>
                     <div className="flex flex-col items-center">
                         <div className="flex flex-row gap-2 items-baseline">
-                        <p className="text-[#8A898B] text-2xl">Não tem uma conta?</p>
-                        <Link className="text-[#4EC5C1] text-2xl" to="/">Conheça o Blick</Link>
-                    </div>
+                            <p className="text-[#8A898B] text-2xl">Não tem uma conta?</p>
+                            <Link className="text-[#4EC5C1] text-2xl" to="/">Conheça o Blick</Link>
+                        </div>
                     </div>
                 </div>
             </div>
             <div className="w-1/2 relative min-h-screen">
                 <img
-                    src="src/assets/images/aphid.png"
+                    src={aphid}
                     alt="Imagem de login"
                     className="absolute inset-0 w-full h-full object-cover"
                 />

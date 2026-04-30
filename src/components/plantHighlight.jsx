@@ -1,5 +1,10 @@
 import SceneHealthBar from "./sceneHealthBar"
 import VitalCard from "./vitalCard"
+import cameraGray from "../assets/images/camera-gray.png"
+import locationPin from "../assets/images/location-pin.png"
+import lowrisk from "../assets/images/lowrisk.png"
+import attention from "../assets/images/attention.png"
+import warning from "../assets/images/warning.png"
 
 export default function PlantHighlight({ status, time, id, distance, location, img, leaves, health, plaguePercent, nutritionPercent, hydrationPercent, found, recommendations }) {
     const statusColor =
@@ -10,6 +15,8 @@ export default function PlantHighlight({ status, time, id, distance, location, i
         health > 66 ? "#1A2E1A" :
             health > 33 ? "#2A2200" :
                 "#2E1A1A"
+
+    const icon = health > 66 ? lowrisk : health > 33 ? attention : warning
 
     return (
         <div className="flex flex-col flex-1 min-w-0 gap-0">
@@ -22,11 +29,11 @@ export default function PlantHighlight({ status, time, id, distance, location, i
                         <p className="text-[#8A898B] text-sm">capturada às {time}</p>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
-                        <img src="src/assets/images/camera-gray.png" className="w-4 h-4" />
+                        <img src={cameraGray} className="w-4 h-4" />
                         <p className="text-white font-bold uppercase">Imagem {id}</p>
                     </div>
                     <div className="flex flex-row gap-2 text-[#8A898B] text-sm items-baseline">
-                        <img src="src/assets/images/location-pin.png" className="w-4 h-4" />
+                        <img src={locationPin} className="w-4 h-4" />
                         <p>{location}</p>
                         <p>●</p>
                         <p>Posição {distance} m</p>
@@ -94,18 +101,12 @@ export default function PlantHighlight({ status, time, id, distance, location, i
             <div className="bg-[#1B2125] border border-t-0 border-[#8A898B]/25 p-4">
                 <div className="flex flex-col gap-2">
                     <p className="text-[#8A898B] font-bold">ACHADOS NA IMAGEM</p>
-                    {found.split("\n").map((line, index) => {
-                        const icon =
-                            health > 66 ? "src/assets/images/lowrisk.png" :
-                                health > 33 ? "src/assets/images/attention.png" :
-                                    "src/assets/images/warning.png"
-                        return (
-                            <div key={index} className="flex flex-row gap-2 items-center">
-                                <img src={icon} className="w-4 h-4" />
-                                <p className="text-sm text-white">{line}</p>
-                            </div>
-                        )
-                    })}
+                    {found.split("\n").map((line, index) => (
+                        <div key={index} className="flex flex-row gap-2 items-center">
+                            <img src={icon} className="w-4 h-4" />
+                            <p className="text-sm text-white">{line}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
             <div className="bg-[#1A1412] border border-t-0 border-[#8A898B]/25 rounded-b-2xl p-4">

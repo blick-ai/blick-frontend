@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router"
-
 import CarInfo from "./carInfo"
 import Sweep from "./sweep"
 import Health from "./health"
+import logo from "../assets/images/logo-transparent.png"
+import exit from "../assets/images/exit.png"
 
 export default function Sidebar() {
     const navigate = useNavigate()
@@ -10,9 +11,9 @@ export default function Sidebar() {
     return (
         <div className="flex flex-col w-90 shrink-0">
             <div className="bg-[#1B2125] border border-[#8A898B]/25 text-[#8A898B] flex flex-row h-16 w-full py-3 px-3 justify-between items-center">
-                <img src="src/assets/images/logo-transparent.png" className="w-24 h-auto" />
+                <img src={logo} className="w-24 h-auto" />
                 <button type="button" className="hover:opacity-70" onClick={() => navigate("/")}>
-                    <img src="src/assets/images/exit.png" alt="Sair" className="h-5 w-5" />
+                    <img src={exit} alt="Sair" className="h-5 w-5" />
                 </button>
             </div>
             <div className="bg-[#1B2125] border border-[#8A898B]/25 text-[#8A898B] flex flex-col flex-1 w-full py-3 px-3 gap-2 overflow-y-auto">

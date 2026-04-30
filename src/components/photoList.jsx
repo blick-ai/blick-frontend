@@ -1,4 +1,6 @@
 import PlantPhoto from "./plantPhoto"
+import plantPlaceholder from "../assets/images/plant-placeholder.png"
+
 const photos = [
     { id: "IMG-2048", location: "Setor A3", distance: 18.2, leaves: 14, time: "14:32:14", health: 32, aphidPercentage: 28, nutritionPercentage: 61, hydrationPercentage: 38, found: "Foco de pulgão em 4 folhas da face abaxial.\nSinais de murcha foliar em 6 folhas.\nColoração amarelada nas bordas.", recommendations: "Aplicar controle biológico (Coccinellidae) e antecipar irrigação localizada neste trecho." },
     { id: "IMG-2047", location: "Setor A3", distance: 17.6, leaves: 18, time: "14:31:48", health: 68, aphidPercentage: 15, nutritionPercentage: 72, hydrationPercentage: 65, found: "Leve amarelecimento em 3 folhas.\nPontos de desidratação moderada.", recommendations: "Monitorar evolução do amarelecimento e manter irrigação regular." },
@@ -16,13 +18,13 @@ export default function PhotoList({ selectedId, onSelect, hasSelection }) {
             {photos.map((photo) => (
                 <PlantPhoto
                     key={photo.id}
-                    image="src/assets/images/plant-placeholder.png"
+                    image={plantPlaceholder}
                     selected={selectedId === photo.id}
                     onSelect={() => {
                         if (selectedId === photo.id) {
                             onSelect(null)
                         } else {
-                            onSelect({ ...photo, image: "src/assets/images/plant-placeholder.png" })
+                            onSelect({ ...photo, image: plantPlaceholder })
                         }
                     }}
                     {...photo}
