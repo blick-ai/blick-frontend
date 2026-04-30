@@ -46,7 +46,7 @@ jobs:
 
       - name: CDK Bootstrap
         run: |
-          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --require-approval never --force
+          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --qualifier blkweb --toolkit-stack-name CDKToolkitBlkweb --require-approval never
 
   DeployToAWS:
     needs: Bootstrap
@@ -144,5 +144,5 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='BlickWebAmplifyDomain${{ env.STAGE }}'].OutputValue" \
             --output text)
           echo "AMPLIFY_DOMAIN=$AMPLIFY_DOMAIN" >> $GITHUB_ENV
-          echo "### Deploy concluído!" >> $GITHUB_STEP_SUMMARY
-          echo "**URL do Amplify:** https://$AMPLIFY_DOMAIN" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Deploy concluído!" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **URL do Amplify:** https://$AMPLIFY_DOMAIN" >> $GITHUB_STEP_SUMMARY
