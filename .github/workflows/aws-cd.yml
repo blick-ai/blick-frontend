@@ -159,8 +159,7 @@ jobs:
           aws amplify create-deployment \
             --app-id ${{ env.AMPLIFY_APP_ID }} \
             --branch-name ${{ env.STAGE == 'prod' && 'main' || 'develop' }} \
-            --region ${{ env.AWS_REGION }} \
-            --no-auto-sub-domain-creation > deployment.json
+            --region ${{ env.AWS_REGION }} > deployment.json
           UPLOAD_URL=$(cat deployment.json | python3 -c "import sys,json; print(json.load(sys.stdin)['zipUploadUrl'])")
           JOB_ID=$(cat deployment.json | python3 -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
           curl -X PUT -H "Content-Type: application/zip" --upload-file deploy.zip "$UPLOAD_URL"
