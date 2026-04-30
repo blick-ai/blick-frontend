@@ -46,7 +46,13 @@ jobs:
 
       - name: CDK Bootstrap
         run: |
-          cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --qualifier blkweb --toolkit-stack-name CDKToolkitBlkweb --require-approval never
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name CDKToolkitBlkweb --region ${{ env.AWS_REGION }} --query "Stacks[0].StackStatus" --output text 2>&1 || echo "NOT_FOUND")
+          if [[ "$STACK_STATUS" == "NOT_FOUND" ]] || [[ "$STACK_STATUS" == *"does not exist"* ]]; then
+            echo "Bootstrap nao encontrado, executando..."
+            cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --qualifier blkweb --toolkit-stack-name CDKToolkitBlkweb --require-approval never
+          else
+            echo "Bootstrap ja existe (status: $STACK_STATUS), pulando..."
+          fi
 
   DeployToAWS:
     needs: Bootstrap
@@ -119,6 +125,8 @@ jobs:
 
       - name: Get S3 Bucket Name
         run: |
+          echo "=== Outputs da stack ==="
+          aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks --stack-name ${{ env.STACK_NAME }} --query "Stacks[0].Outputs" --output table
           AWS_BUCKET=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
             --stack-name ${{ env.STACK_NAME }} \
             --query "Stacks[0].Outputs[?OutputKey=='BlickWebBucketName${{ env.STAGE }}'].OutputValue" \
