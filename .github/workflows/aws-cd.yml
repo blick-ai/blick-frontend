@@ -129,7 +129,7 @@ jobs:
           aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks --stack-name ${{ env.STACK_NAME }} --query "Stacks[0].Outputs" --output table
           AWS_BUCKET=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
             --stack-name ${{ env.STACK_NAME }} \
-            --query "Stacks[0].Outputs[?OutputKey=='BlickWebBucketName${{ env.STAGE }}'].OutputValue" \
+            --query "Stacks[0].Outputs[?contains(OutputKey, 'BlickWebBucketName')].OutputValue" \
             --output text)
           echo "AWS_BUCKET=$AWS_BUCKET" >> $GITHUB_ENV
 
@@ -141,7 +141,7 @@ jobs:
         run: |
           AMPLIFY_APP_ID=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
             --stack-name ${{ env.STACK_NAME }} \
-            --query "Stacks[0].Outputs[?OutputKey=='BlickWebAmplifyAppId${{ env.STAGE }}'].OutputValue" \
+            --query "Stacks[0].Outputs[?contains(OutputKey, 'BlickWebAmplifyAppId')].OutputValue" \
             --output text)
           echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> $GITHUB_ENV
 
@@ -149,7 +149,7 @@ jobs:
         run: |
           AMPLIFY_DOMAIN=$(aws cloudformation --region ${{ env.AWS_REGION }} describe-stacks \
             --stack-name ${{ env.STACK_NAME }} \
-            --query "Stacks[0].Outputs[?OutputKey=='BlickWebAmplifyDomain${{ env.STAGE }}'].OutputValue" \
+            --query "Stacks[0].Outputs[?contains(OutputKey, 'BlickWebAmplifyDomain')].OutputValue" \
             --output text)
           echo "AMPLIFY_DOMAIN=$AMPLIFY_DOMAIN" >> $GITHUB_ENV
           echo "### ✅ Deploy concluído!" >> $GITHUB_STEP_SUMMARY
