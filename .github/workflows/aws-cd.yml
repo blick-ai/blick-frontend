@@ -112,7 +112,7 @@ jobs:
           echo AWS_REGION=${{ env.AWS_REGION }} >> $GITHUB_ENV
           echo AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} >> $GITHUB_ENV
           echo STACK_NAME=${{ env.STACK_NAME }} >> $GITHUB_ENV
-          echo GITHUB_REF_NAME=${{ env.STAGE }} >> $GITHUB_ENV
+          echo CDK_STAGE=${{ env.STAGE }} >> $GITHUB_ENV
 
       - name: Deploy with CDK
         run: |
