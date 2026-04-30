@@ -8,7 +8,7 @@ class IacStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props)
 
-    const stage = process.env.GITHUB_REF_NAME || 'dev'
+    const stage = process.env.CDK_STAGE || 'dev'
 
     cdk.Tags.of(this).add('environment', 'GRADUACAO')
     cdk.Tags.of(this).add('project', 'TCC')
