@@ -8,11 +8,11 @@ export default defineConfig([
   globalIgnores(['dist', 'iac']),,
   {
     files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
+  extends: [
+    js.configs.recommended,
+    reactHooks.configs.flat.recommended,
+    reactRefresh.configs.recommended,
+  ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
