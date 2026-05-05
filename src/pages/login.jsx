@@ -10,7 +10,6 @@ export default function Login() {
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-[#16191C]">
-            {/* Formulário */}
             <div className="w-full md:w-1/2 flex items-center justify-center px-6 sm:px-12 md:px-20 py-12 md:py-0">
                 <div className="flex flex-col gap-6 sm:gap-8 text-left w-full max-w-md">
                     <img src={logo} className="h-auto w-32 sm:w-40 mb-4 sm:mb-8" />
@@ -58,7 +57,6 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* Imagem lateral — oculta em mobile */}
             <div className="hidden md:block md:w-1/2 relative min-h-screen">
                 <img
                     src={aphid}

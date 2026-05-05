@@ -22,7 +22,7 @@ export default function PlantHighlight({ status, time, id, distance, location, i
         <div className="flex flex-col flex-1 min-w-0 gap-0">
             <div className="bg-[#1B2125] border border-[#8A898B]/25 rounded-t-2xl p-4">
                 <div className="flex flex-col gap-3">
-                    <div className="flex flex-row gap-2">
+                    <div className="flex flex-row gap-2 items-center flex-wrap">
                         <div className="border rounded-full py-0.5 px-2 w-20 text-center" style={{ backgroundColor: statusBg, borderColor: statusColor }}>
                             <p className="font-bold text-[10px]" style={{ color: statusColor }}>● {status}</p>
                         </div>
@@ -32,8 +32,8 @@ export default function PlantHighlight({ status, time, id, distance, location, i
                         <img src={cameraGray} className="w-4 h-4" />
                         <p className="text-white font-bold uppercase">Imagem {id}</p>
                     </div>
-                    <div className="flex flex-row gap-2 text-[#8A898B] text-sm items-baseline">
-                        <img src={locationPin} className="w-4 h-4" />
+                    <div className="flex flex-row gap-2 text-[#8A898B] text-sm items-center flex-wrap">
+                        <img src={locationPin} className="w-4 h-4 shrink-0" />
                         <p>{location}</p>
                         <p>●</p>
                         <p>Posição {distance} m</p>
@@ -41,8 +41,8 @@ export default function PlantHighlight({ status, time, id, distance, location, i
                 </div>
             </div>
             <div className="bg-[#1B2125] border border-t-0 border-[#8A898B]/25 p-4">
-                <div className="flex flex-row gap-4">
-                    <img src={img} className="w-100 h-auto rounded-2xl" />
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <img src={img} className="w-full sm:w-40 md:w-100 h-auto rounded-2xl object-cover" />
                     <div className="flex flex-col gap-3 w-full">
                         <p className="text-[#8A898B] font-bold">SAÚDE DA CENA</p>
                         <SceneHealthBar health={health} />
@@ -53,7 +53,7 @@ export default function PlantHighlight({ status, time, id, distance, location, i
             <div className="bg-[#1B2125] border border-t-0 border-[#8A898B]/25 p-4">
                 <div className="flex flex-col gap-2">
                     <p className="text-[#8A898B] font-bold">SINAIS VITAIS DA CENA</p>
-                    <div className="flex flex-row gap-4 justify-center">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <VitalCard
                             label="Pragas & Doenças"
                             subtitle="Área foliar afetada"
@@ -103,7 +103,7 @@ export default function PlantHighlight({ status, time, id, distance, location, i
                     <p className="text-[#8A898B] font-bold">ACHADOS NA IMAGEM</p>
                     {found.split("\n").map((line, index) => (
                         <div key={index} className="flex flex-row gap-2 items-center">
-                            <img src={icon} className="w-4 h-4" />
+                            <img src={icon} className="w-4 h-4 shrink-0" />
                             <p className="text-sm text-white">{line}</p>
                         </div>
                     ))}
