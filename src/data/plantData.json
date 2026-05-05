@@ -1,0 +1,48 @@
+{
+    "soja": {
+        "nome_comum": "Soja",
+        "nome_cientifico": "Glycine max",
+        "familia": "Fabaceae",
+        "ciclo": "90 a 130 dias",
+        "origem": "China",
+        "cultivoIdeal": {
+            "solo": "Argiloso ou franco-argiloso, bem drenado",
+            "ph": "6.0 – 6.5",
+            "temperatura": "20°C – 30°C",
+            "precipitacao": "450 – 800 mm por ciclo",
+            "luminosidade": "Pleno sol — fotoperíodo crítico para floração"
+        },
+        "pragasDoencas": [
+            {
+                "nome": "Pulgão-da-soja",
+                "tipo": "Praga",
+                "descricao": "Inseto sugador que coloniza folhas e hastes, transmitindo vírus e causando deformações.",
+                "severidade": "critical"
+            },
+            {
+                "nome": "Ferrugem-asiática",
+                "tipo": "Doença",
+                "descricao": "Fungo Phakopsora pachyrhizi que provoca lesões foliares e desfolha precoce severa.",
+                "severidade": "critical"
+            },
+            {
+                "nome": "Lagarta-da-soja",
+                "tipo": "Praga",
+                "descricao": "Anticarsia gemmatalis desfolha rapidamente a cultura se não controlada no início.",
+                "severidade": "warning"
+            },
+            {
+                "nome": "Oídio",
+                "tipo": "Doença",
+                "descricao": "Fungo que forma película branca nas folhas, reduzindo fotossíntese em clima seco.",
+                "severidade": "warning"
+            },
+            {
+                "nome": "Percevejo-marrom",
+                "tipo": "Praga",
+                "descricao": "Euschistus heros causa chochamento de grãos e manchas nas sementes.",
+                "severidade": "warning"
+            }
+        ]
+    }
+}

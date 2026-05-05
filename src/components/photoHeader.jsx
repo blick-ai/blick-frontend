@@ -5,12 +5,12 @@ export default function PhotoHeader({ totalPhotos, totalLeaves, healthCounts }) 
 
     return (
         <div className="flex flex-col gap-3">
-            <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div className="flex flex-col gap-1">
                     <p className="text-white font-bold text-xl">IMAGENS ANALISADAS</p>
                     <p className="text-[#8A898B] text-sm">Soja · 25/04/2026 · {totalPhotos} capturas · {totalLeaves} folhas detectadas</p>
                 </div>
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row flex-wrap gap-2">
                     {[
                         { key: "todas", label: `TODAS (${totalPhotos})` },
                         { key: "saudavel", label: `SAUDÁVEIS (${healthCounts.healthy})` },

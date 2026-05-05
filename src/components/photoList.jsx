@@ -14,7 +14,7 @@ const photos = [
 
 export default function PhotoList({ selectedId, onSelect, hasSelection }) {
     return (
-        <div className={`${hasSelection ? "w-1/2" : "w-full"} shrink-0 flex flex-col gap-2 overflow-y-auto`}>
+        <div className={`${hasSelection ? "w-full lg:w-1/2" : "w-full"} shrink-0 flex flex-col gap-2 overflow-y-auto`}>
             {photos.map((photo) => (
                 <PlantPhoto
                     key={photo.id}
