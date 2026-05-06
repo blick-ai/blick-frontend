@@ -13,7 +13,7 @@ export default function Dashboard() {
         "CRÍTICO"
 
     return (
-        <div className="bg-[#16191C] flex flex-row min-h-screen overflow-hidden">
+        <div className="bg-[#16191C] flex flex-row min-h-screen items-stretch">
             <Sidebar />
             <div className="flex flex-col gap-4 p-4 md:p-6 flex-1 min-w-0 pt-20 md:pt-6">
                 <PhotoHeader
