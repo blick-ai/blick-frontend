@@ -49,7 +49,15 @@ jobs:
           STACK_STATUS=$(aws cloudformation describe-stacks --stack-name CDKToolkitBlkweb --region ${{ env.AWS_REGION }} --query "Stacks[0].StackStatus" --output text 2>&1 || echo "NOT_FOUND")
           if [[ "$STACK_STATUS" == "NOT_FOUND" ]] || [[ "$STACK_STATUS" == *"does not exist"* ]]; then
             echo "Bootstrap nao encontrado, executando..."
-            cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} --qualifier blkweb --toolkit-stack-name CDKToolkitBlkweb --require-approval never
+            cdk bootstrap aws://${{ env.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} \
+              --qualifier blkweb \
+              --toolkit-stack-name CDKToolkitBlkweb \
+              --tags environment=GRADUACAO \
+              --tags project=TCC \
+              --tags group=CMD04 \
+              --tags creator=LUCASCRAPINO_22006672 \
+              --tags owner=BOSSINI \
+              --require-approval never
           else
             echo "Bootstrap ja existe (status: $STACK_STATUS), pulando..."
           fi
