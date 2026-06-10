@@ -4,9 +4,54 @@ import { Link } from "react-router"
 import logo from "../assets/images/logo-transparent.png"
 import aphid from "../assets/images/aphid.png"
 
+const API_URL = "https://1uzo5w52jk.execute-api.us-east-1.amazonaws.com"
+
 export default function Login() {
     const [show, setShow] = useState(false)
+    const [email, setEmail] = useState("")
+    const [senha, setSenha] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [erro, setErro] = useState("")
     const navigate = useNavigate()
+
+    async function handleLogin() {
+        setErro("")
+
+        if (!email || !senha) {
+            setErro("Preencha o e-mail e a senha.")
+            return
+        }
+
+        setLoading(true)
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, senha }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                setErro(data?.detail || "Credenciais inválidas. Tente novamente.")
+                return
+            }
+
+            localStorage.setItem("access_token", data.access_token)
+            localStorage.setItem("refresh_token", data.refresh_token)
+            localStorage.setItem("id_token", data.id_token)
+
+            navigate("/dashboard")
+        } catch {
+            setErro("Erro de conexão. Verifique sua internet e tente novamente.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === "Enter") handleLogin()
+    }
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-[#16191C]">
@@ -17,20 +62,28 @@ export default function Login() {
                     <p className="text-[#8A898B] text-base sm:text-xl md:text-2xl mb-2 sm:mb-4">
                         Diagnóstico contínuo da saúde do seu cultivo
                     </p>
+
                     <div className="flex flex-col gap-3">
                         <p className="text-white font-bold text-lg sm:text-xl md:text-2xl">E-mail</p>
                         <input
                             type="email"
                             placeholder="Digite seu email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="bg-[#181D23] text-white placeholder-[#8A898B] border border-[#8A898B]/25 rounded-xl px-4 py-3 outline-none focus:border-[#4A9B9A] w-full h-12 sm:h-15"
                         />
                     </div>
+
                     <div className="flex flex-col gap-3">
                         <p className="text-white font-bold text-lg sm:text-xl md:text-2xl">Senha</p>
                         <div className="relative w-full">
                             <input
                                 type={show ? "text" : "password"}
                                 placeholder="Digite sua senha"
+                                value={senha}
+                                onChange={(e) => setSenha(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 className="bg-[#181D23] text-white placeholder-[#8A898B] border border-[#8A898B]/25 rounded-xl px-4 py-3 outline-none focus:border-[#4A9B9A] w-full pr-20 h-12 sm:h-15"
                             />
                             <button
@@ -42,12 +95,19 @@ export default function Login() {
                             </button>
                         </div>
                     </div>
+
+                    {erro && (
+                        <p className="text-red-400 text-sm -mt-2">{erro}</p>
+                    )}
+
                     <button
-                        className="bg-[#4EC5C1] hover:bg-[#3A9A97] text-black font-bold py-2 px-4 rounded h-12 sm:h-15 mb-2 sm:mb-3"
-                        onClick={() => navigate("/dashboard")}
+                        className="bg-[#4EC5C1] hover:bg-[#3A9A97] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-2 px-4 rounded h-12 sm:h-15 mb-2 sm:mb-3 transition-colors"
+                        onClick={handleLogin}
+                        disabled={loading}
                     >
-                        ENTRAR
+                        {loading ? "ENTRANDO..." : "ENTRAR"}
                     </button>
+
                     <div className="flex flex-col items-center">
                         <div className="flex flex-row flex-wrap gap-2 items-baseline justify-center">
                             <p className="text-[#8A898B] text-base sm:text-xl md:text-2xl">Não tem uma conta?</p>
