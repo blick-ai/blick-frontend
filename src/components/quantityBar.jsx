@@ -1,8 +1,9 @@
-export default function QuantityBar({ status, quantity, total }) {
-    const color =
+export default function QuantityBar({ status, quantity, total, color: corForcada }) {
+    const color = corForcada || (
         status === "Saudável" ? "#4CAF50" :
             status === "Atenção" ? "#D4A34A" :
                 "#C75050"
+    )
 
     const percentage = total > 0 ? (quantity / total) * 100 : 0
     

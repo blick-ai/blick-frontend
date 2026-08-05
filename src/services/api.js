@@ -137,4 +137,24 @@ export async function obterCaptura(capturaId, timestamp, plantacaoId) {
     return normalizarDetalhe(resposta)
 }
 
+export async function obterResumoGeral(plantacaoId) {
+    const [saudavel, praga, doenca, naoMilho, erro, geral] = await Promise.all([
+        listarCapturas({ statusGeral: "saudavel", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ statusGeral: "praga", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ statusGeral: "doenca", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ statusGeral: "nao_milho", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ status: "ERRO", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ tamanhoPagina: 1, plantacaoId }),
+    ])
+
+    return {
+        saudavel: saudavel.total,
+        praga: praga.total,
+        doenca: doenca.total,
+        naoMilho: naoMilho.total,
+        impossivel: erro.total,
+        total: geral.total,
+    }
+}
+
 export { API_URL }

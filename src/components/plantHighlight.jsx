@@ -103,6 +103,29 @@ export default function PlantHighlight({ captura, carregando, erro }) {
                                 {subtipo && (
                                     <p className="text-[#8A898B] text-sm">Subtipo identificado: <span className="text-white">{subtipo}</span></p>
                                 )}
+
+                                {alertaEmitido && (
+                                    <div className="bg-[#C75050]/10 border border-[#C75050] rounded-xl p-3 flex flex-col gap-1">
+                                        <p className="text-[#C75050] font-bold text-sm">⚠ Alerta — {LABEL_CLASSE[statusGeral] || statusGeral} detectado</p>
+                                        <p className="text-[#8A898B] text-xs">
+                                            Recomenda-se uma inspeção visual no local pra confirmar a extensão do
+                                            problema e decidir se é necessária alguma ação (tratamento, isolamento
+                                            da área, etc.).
+                                        </p>
+                                    </div>
+                                )}
+
+                                {statusGeral === "nao_milho" && (
+                                    <div className="bg-[#2A2D31] border border-[#8A898B]/40 rounded-xl p-3 flex flex-col gap-1">
+                                        <p className="text-[#8A898B] font-bold text-sm">ℹ Esta captura pode ser ignorada</p>
+                                        <p className="text-[#8A898B] text-xs">
+                                            O modelo não identificou uma planta de milho válida nesta imagem
+                                            (câmera bloqueada, enquadramento fora da plantação, ou baixa qualidade).
+                                            Não representa um problema real na lavoura.
+                                        </p>
+                                    </div>
+                                )}
+
                                 <p className="text-[#8A898B] text-sm">
                                     Classificação gerada pelo modelo de visão computacional a partir desta captura.
                                 </p>

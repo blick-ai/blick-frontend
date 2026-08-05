@@ -7,7 +7,7 @@ import Health from "./health";
 import logo from "../assets/images/logo-transparent.png";
 import exit from "../assets/images/exit.png";
 
-export default function Sidebar() {
+export default function Sidebar({ resumo, carregandoResumo }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
@@ -64,16 +64,9 @@ export default function Sidebar() {
                     <br />
                     <CarRoute />
                     <br />
-                    <Sweep
-                        imageNumber={8}
-                        leafNumber={139}
-                        affectedAreas={23}
-                        healthyQuantity={3}
-                        warningQuantity={3}
-                        criticalQuantity={2}
-                    />
+                    <Sweep resumo={resumo} carregando={carregandoResumo} />
                     <br />
-                    <Health health={69} />
+                    <Health resumo={resumo} carregando={carregandoResumo} />
                 </div>
             </div>
         </>

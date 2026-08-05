@@ -6,7 +6,7 @@ import PlantHighlight from "../components/plantHighlight"
 import FilterPanel from "../components/filterPanel"
 import Pagination from "../components/pagination"
 import SessaoExpiradaModal from "../components/sessaoExpiradaModal"
-import { listarCapturas, obterCaptura, SessaoExpiradaError } from "../services/api"
+import { listarCapturas, obterCaptura, obterResumoGeral, SessaoExpiradaError } from "../services/api"
 
 const TAMANHO_PAGINA = 8
 
@@ -29,6 +29,9 @@ export default function Dashboard() {
     const [erroDetalhe, setErroDetalhe] = useState("")
 
     const [sessaoExpirada, setSessaoExpirada] = useState(false)
+
+    const [resumoGeral, setResumoGeral] = useState(null)
+    const [carregandoResumo, setCarregandoResumo] = useState(true)
 
     // busca a lista sempre que filtro ou pagina mudam — lista de mais
     // recentes primeiro por padrao, ja que a API ordena assim sem
@@ -67,6 +70,33 @@ export default function Dashboard() {
         carregar()
         return () => { cancelado = true }
     }, [filtros, pagina])
+
+    // resumo geral (sidebar) — busca uma vez ao montar, independente dos
+    // filtros/pagina da lista principal
+    useEffect(() => {
+        let cancelado = false
+
+        async function carregarResumo() {
+            setCarregandoResumo(true)
+            try {
+                const resultado = await obterResumoGeral()
+                if (cancelado) return
+                setResumoGeral(resultado)
+            } catch (erro) {
+                if (cancelado) return
+                if (erro instanceof SessaoExpiradaError) {
+                    setSessaoExpirada(true)
+                }
+                // erro no resumo lateral nao e critico o bastante pra
+                // travar o resto do dashboard — so fica sem esse card
+            } finally {
+                if (!cancelado) setCarregandoResumo(false)
+            }
+        }
+
+        carregarResumo()
+        return () => { cancelado = true }
+    }, [])
 
     // busca o detalhe SO quando o usuario clica numa captura — nunca em
     // lote, nunca antecipado
@@ -119,7 +149,7 @@ export default function Dashboard() {
     return (
         <div className="bg-[#16191C] flex flex-row min-h-screen items-stretch">
             {sessaoExpirada && <SessaoExpiradaModal />}
-            <Sidebar />
+            <Sidebar resumo={resumoGeral} carregandoResumo={carregandoResumo} />
             <div className="flex flex-col gap-4 p-4 md:p-6 flex-1 min-w-0 pt-20 md:pt-6">
                 <PhotoHeader
                     total={total}
