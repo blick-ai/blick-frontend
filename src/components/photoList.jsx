@@ -28,6 +28,7 @@ export default function PhotoList({ capturas, selectedId, onSelect, carregando, 
                     latitude={captura.latitude}
                     longitude={captura.longitude}
                     alertaEmitido={captura.alertaEmitido}
+                    imagemUrl={captura.imagemUrl}
                     selected={selectedId === captura.capturaId}
                     onSelect={() => {
                         if (selectedId === captura.capturaId) {

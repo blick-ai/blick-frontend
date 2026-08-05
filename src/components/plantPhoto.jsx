@@ -1,6 +1,7 @@
 import StatusBar from "./statusBar"
 import cameraGray from "../assets/images/camera-gray.png"
 import time from "../assets/images/time.png"
+import plantPlaceholder from "../assets/images/plant-placeholder.png"
 import { formatarHora, formatarData } from "../utils/status"
 
 const LABEL_STATUS_PIPELINE = {
@@ -18,6 +19,7 @@ export default function PlantPhoto({
     latitude,
     longitude,
     alertaEmitido,
+    imagemUrl,
     selected,
     onSelect,
 }) {
@@ -28,6 +30,11 @@ export default function PlantPhoto({
             onClick={onSelect}
             className={`bg-[#1B2125] border flex flex-row rounded-2xl p-3 sm:p-4 gap-3 sm:gap-4 items-center w-full cursor-pointer transition-colors duration-150 ${selected ? "border-[#4A9B9A]" : "border-[#8A898B]/25 hover:border-white"}`}
         >
+            <img
+                src={imagemUrl || plantPlaceholder}
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0"
+                loading="lazy"
+            />
             <div className="flex flex-col gap-1 flex-1 min-w-0">
                 <div className="flex flex-row justify-between items-center gap-2">
                     <div className="flex flex-row gap-2 items-center min-w-0">

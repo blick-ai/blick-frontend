@@ -48,6 +48,7 @@ function normalizarResumo(item) {
         latitude: item.latitude,
         longitude: item.longitude,
         alertaEmitido: campo(item, "alertaEmitido", "alerta_emitido"),
+        imagemUrl: campo(item, "imagemUrl", "imagem_url"),
     }
 }
 
