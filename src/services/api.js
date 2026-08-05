@@ -1,5 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL
 
+/** Erro especifico pra token expirado/invalido (401) — o dashboard usa
+ * isso pra distinguir "sessao expirou" de qualquer outro erro de API e
+ * mostrar o modal de sessao expirada em vez da mensagem de erro comum. */
+export class SessaoExpiradaError extends Error {
+    constructor() {
+        super("Sessão expirada")
+        this.name = "SessaoExpiradaError"
+    }
+}
+
 function getToken() {
     return localStorage.getItem("access_token")
 }
@@ -15,6 +25,10 @@ async function apiFetch(path, options = {}) {
             ...options.headers,
         },
     })
+
+    if (response.status === 401) {
+        throw new SessaoExpiradaError()
+    }
 
     if (!response.ok) {
         const erro = await response.json().catch(() => ({}))

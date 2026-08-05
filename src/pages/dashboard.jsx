@@ -5,7 +5,8 @@ import PhotoHeader from "../components/photoHeader"
 import PlantHighlight from "../components/plantHighlight"
 import FilterPanel from "../components/filterPanel"
 import Pagination from "../components/pagination"
-import { listarCapturas, obterCaptura } from "../services/api"
+import SessaoExpiradaModal from "../components/sessaoExpiradaModal"
+import { listarCapturas, obterCaptura, SessaoExpiradaError } from "../services/api"
 
 const TAMANHO_PAGINA = 8
 
@@ -26,6 +27,8 @@ export default function Dashboard() {
     const [detalhe, setDetalhe] = useState(null)
     const [carregandoDetalhe, setCarregandoDetalhe] = useState(false)
     const [erroDetalhe, setErroDetalhe] = useState("")
+
+    const [sessaoExpirada, setSessaoExpirada] = useState(false)
 
     // busca a lista sempre que filtro ou pagina mudam — lista de mais
     // recentes primeiro por padrao, ja que a API ordena assim sem
@@ -51,6 +54,10 @@ export default function Dashboard() {
                 setTotalPaginas(resultado.totalPaginas)
             } catch (erro) {
                 if (cancelado) return
+                if (erro instanceof SessaoExpiradaError) {
+                    setSessaoExpirada(true)
+                    return
+                }
                 setErroLista(erro.message || "Não foi possível carregar as capturas.")
             } finally {
                 if (!cancelado) setCarregandoLista(false)
@@ -81,6 +88,10 @@ export default function Dashboard() {
                 setDetalhe(resultado)
             } catch (erro) {
                 if (cancelado) return
+                if (erro instanceof SessaoExpiradaError) {
+                    setSessaoExpirada(true)
+                    return
+                }
                 setErroDetalhe(erro.message || "Não foi possível carregar o detalhe desta captura.")
             } finally {
                 if (!cancelado) setCarregandoDetalhe(false)
@@ -107,6 +118,7 @@ export default function Dashboard() {
 
     return (
         <div className="bg-[#16191C] flex flex-row min-h-screen items-stretch">
+            {sessaoExpirada && <SessaoExpiradaModal />}
             <Sidebar />
             <div className="flex flex-col gap-4 p-4 md:p-6 flex-1 min-w-0 pt-20 md:pt-6">
                 <PhotoHeader
