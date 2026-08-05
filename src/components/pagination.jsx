@@ -1,11 +1,18 @@
-const TAMANHO_BLOCO = 5
+const TAMANHO_JANELA = 5
 
 export default function Pagination({ paginaAtual, totalPaginas, onChange }) {
     if (!totalPaginas || totalPaginas <= 1) return null
 
-    const blocoAtual = Math.ceil(paginaAtual / TAMANHO_BLOCO)
-    const inicio = (blocoAtual - 1) * TAMANHO_BLOCO + 1
-    const fim = Math.min(inicio + TAMANHO_BLOCO - 1, totalPaginas)
+    // janela desliza junto com a pagina atual, tentando deixar ela no meio
+    // — assim, ao clicar em "5", os vizinhos (6, 7...) ja aparecem na
+    // mesma janela, sem precisar de outro clique pra "revelar" o proximo
+    // bloco
+    let inicio = Math.max(1, paginaAtual - Math.floor(TAMANHO_JANELA / 2))
+    let fim = inicio + TAMANHO_JANELA - 1
+    if (fim > totalPaginas) {
+        fim = totalPaginas
+        inicio = Math.max(1, fim - TAMANHO_JANELA + 1)
+    }
 
     const paginas = []
     for (let p = inicio; p <= fim; p++) paginas.push(p)
