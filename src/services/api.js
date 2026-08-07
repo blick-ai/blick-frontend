@@ -130,6 +130,14 @@ export async function listarCapturas({
     return normalizarListaResposta(resposta)
 }
 
+/**
+ * Busca o detalhe completo de UMA captura (endpoint especifico) — so deve
+ * ser chamado quando o usuario clica numa captura da lista, nunca em lote.
+ *
+ * Nota: esse endpoint especifico ainda usa "timestamp"/"plantacao_id" em
+ * snake_case na query (diferente do /capturas geral, que ja usa camelCase)
+ * — reflete o estado atual do backend, nao e escolha do front.
+ */
 export async function obterCaptura(capturaId, timestamp, plantacaoId) {
     const params = new URLSearchParams({ timestamp })
     if (plantacaoId) params.set("plantacao_id", plantacaoId)
@@ -137,6 +145,12 @@ export async function obterCaptura(capturaId, timestamp, plantacaoId) {
     return normalizarDetalhe(resposta)
 }
 
+/**
+ * Busca as contagens agregadas por categoria — usado no resumo lateral do
+ * dashboard. Cada chamada usa tamanhoPagina=1 so pra ler o "total" da
+ * resposta (nao traz os itens de verdade), entao e uma operacao barata
+ * mesmo rodando 6 vezes em paralelo.
+ */
 export async function obterResumoGeral(plantacaoId) {
     const [saudavel, praga, doenca, naoMilho, erro, geral] = await Promise.all([
         listarCapturas({ statusGeral: "saudavel", tamanhoPagina: 1, plantacaoId }),
@@ -152,9 +166,20 @@ export async function obterResumoGeral(plantacaoId) {
         praga: praga.total,
         doenca: doenca.total,
         naoMilho: naoMilho.total,
-        impossivel: erro.total,
+        impossivel: erro.total, // classificacao impossivel de ser feita (status ERRO)
         total: geral.total,
     }
+}
+
+/**
+ * Exclusao DEFINITIVA de uma captura — apaga o registro e a imagem no
+ * bucket, sem volta. Usado quando o usuario revisa o detalhe e conclui
+ * que a classificacao esta errada/nao serve pra nada.
+ */
+export async function excluirCaptura(capturaId, timestamp, plantacaoId) {
+    const params = new URLSearchParams({ timestamp })
+    if (plantacaoId) params.set("plantacao_id", plantacaoId)
+    return apiFetch(`/capturas/${capturaId}?${params.toString()}`, { method: "DELETE" })
 }
 
 export { API_URL }

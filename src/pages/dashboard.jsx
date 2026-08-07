@@ -33,6 +33,8 @@ export default function Dashboard() {
     const [resumoGeral, setResumoGeral] = useState(null)
     const [carregandoResumo, setCarregandoResumo] = useState(true)
 
+    const [refreshTick, setRefreshTick] = useState(0)
+
     // busca a lista sempre que filtro ou pagina mudam — lista de mais
     // recentes primeiro por padrao, ja que a API ordena assim sem
     // precisar de nenhum parametro extra
@@ -69,7 +71,7 @@ export default function Dashboard() {
 
         carregar()
         return () => { cancelado = true }
-    }, [filtros, pagina])
+    }, [filtros, pagina, refreshTick])
 
     // resumo geral (sidebar) — busca uma vez ao montar, independente dos
     // filtros/pagina da lista principal
@@ -172,7 +174,16 @@ export default function Dashboard() {
                     </div>
                     {selecionada && (
                         <div className="flex flex-col lg:w-1/2 lg:shrink-0 overflow-y-auto">
-                            <PlantHighlight captura={detalhe} carregando={carregandoDetalhe} erro={erroDetalhe} />
+                            <PlantHighlight
+                                captura={detalhe}
+                                carregando={carregandoDetalhe}
+                                erro={erroDetalhe}
+                                onExcluida={() => {
+                                    setSelecionada(null)
+                                    setRefreshTick((t) => t + 1)
+                                }}
+                                onSessaoExpirada={() => setSessaoExpirada(true)}
+                            />
                         </div>
                     )}
                 </div>

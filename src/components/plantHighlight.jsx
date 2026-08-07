@@ -1,9 +1,12 @@
+import { useState } from "react"
 import StatusBar from "./statusBar"
 import VitalCard from "./vitalCard"
+import ConfirmModal from "./confirmModal"
 import plantPlaceholder from "../assets/images/plant-placeholder.png"
 import cameraGray from "../assets/images/camera-gray.png"
 import locationPin from "../assets/images/location-pin.png"
 import { statusInfo, formatarHora, formatarData } from "../utils/status"
+import { excluirCaptura, SessaoExpiradaError } from "../services/api"
 
 const LABEL_STATUS_PIPELINE = {
     PENDENTE: "Pendente de classificação",
@@ -18,7 +21,10 @@ const LABEL_CLASSE = {
     nao_milho: "Não é milho",
 }
 
-export default function PlantHighlight({ captura, carregando, erro }) {
+export default function PlantHighlight({ captura, carregando, erro, onExcluida, onSessaoExpirada }) {
+    const [excluindo, setExcluindo] = useState(false)
+    const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
+    const [erroExclusao, setErroExclusao] = useState("")
     if (carregando) {
         return (
             <div className="bg-[#1B2125] border border-[#8A898B]/25 rounded-2xl p-8 flex items-center justify-center flex-1">
@@ -57,6 +63,25 @@ export default function PlantHighlight({ captura, carregando, erro }) {
     const { label, color, bg } = statusInfo(statusGeral)
     const classificada = status === "CLASSIFICADO"
 
+    async function handleConfirmarExclusao() {
+        setExcluindo(true)
+        setErroExclusao("")
+        try {
+            await excluirCaptura(capturaId, timestamp)
+            setMostrarConfirmacao(false)
+            onExcluida?.(capturaId)
+        } catch (erro) {
+            if (erro instanceof SessaoExpiradaError) {
+                setMostrarConfirmacao(false)
+                onSessaoExpirada?.()
+            } else {
+                setErroExclusao(erro.message || "Não foi possível excluir esta captura.")
+            }
+        } finally {
+            setExcluindo(false)
+        }
+    }
+
     return (
         <div className="flex flex-col flex-1 min-w-0 gap-0">
             <div className="bg-[#1B2125] border border-[#8A898B]/25 rounded-t-2xl p-4">
@@ -75,6 +100,18 @@ export default function PlantHighlight({ captura, carregando, erro }) {
                             )}
                             <p className="text-[#8A898B] text-sm">capturada às {formatarHora(timestamp)} de {formatarData(timestamp)}</p>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => setMostrarConfirmacao(true)}
+                            disabled={excluindo}
+                            title="Excluir esta captura"
+                            className="text-[#8A898B] hover:text-[#C75050] disabled:opacity-40 transition-colors shrink-0 p-1"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M19 6V20C19 21.1 18.1 22 17 22H7C5.9 22 5 21.1 5 20V6M8 6V4C8 2.9 8.9 2 10 2H14C15.1 2 16 2.9 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
                         <img src={cameraGray} className="w-4 h-4" />
@@ -187,6 +224,29 @@ export default function PlantHighlight({ captura, carregando, erro }) {
                     </p>
                 </div>
             </div>
+
+            {mostrarConfirmacao && (
+                <ConfirmModal
+                    titulo="Excluir captura"
+                    mensagem={`Tem certeza que deseja excluir a captura ${capturaId}? Essa ação não pode ser desfeita — o registro e a imagem serão apagados permanentemente.`}
+                    textoConfirmar="Excluir"
+                    perigoso
+                    carregando={excluindo}
+                    onConfirmar={handleConfirmarExclusao}
+                    onCancelar={() => setMostrarConfirmacao(false)}
+                />
+            )}
+
+            {erroExclusao && (
+                <ConfirmModal
+                    titulo="Não foi possível excluir"
+                    mensagem={erroExclusao}
+                    textoConfirmar="Entendi"
+                    ocultarCancelar
+                    onConfirmar={() => setErroExclusao("")}
+                    onCancelar={() => setErroExclusao("")}
+                />
+            )}
         </div>
     )
 }
