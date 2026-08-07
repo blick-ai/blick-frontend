@@ -60,7 +60,7 @@ export default function Sidebar({ resumo, carregandoResumo }) {
                     </div>
                 </div>
                 <div className="bg-[#1B2125] border border-[#8A898B]/25 text-[#8A898B] flex flex-col flex-1 min-h-0 w-full py-3 px-3 gap-2 overflow-y-auto">
-                    <CarInfo battery={72} />
+                    <CarInfo />
                     <br />
                     <CarRoute />
                     <br />
