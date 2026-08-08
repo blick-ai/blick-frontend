@@ -4,7 +4,7 @@ import { Link } from "react-router"
 import logo from "../assets/images/logo-transparent.png"
 import aphid from "../assets/images/aphid.png"
 
-const API_URL = "https://1uzo5w52jk.execute-api.us-east-1.amazonaws.com"
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Login() {
     const [show, setShow] = useState(false)

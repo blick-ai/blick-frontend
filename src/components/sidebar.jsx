@@ -7,7 +7,7 @@ import Health from "./health";
 import logo from "../assets/images/logo-transparent.png";
 import exit from "../assets/images/exit.png";
 
-export default function Sidebar() {
+export default function Sidebar({ resumo, carregandoResumo }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
@@ -60,27 +60,13 @@ export default function Sidebar() {
                     </div>
                 </div>
                 <div className="bg-[#1B2125] border border-[#8A898B]/25 text-[#8A898B] flex flex-col flex-1 min-h-0 w-full py-3 px-3 gap-2 overflow-y-auto">
-                    <p className="font-bold text-[10px]">CULTIVO MONITORADO</p>
-                    <select className="bg-[#16191C] text-white text-xs border border-[#8A898B]/25 px-2 py-1.5 outline-none font-bold focus:border-[#4A9B9A] mb-1 w-full rounded-lg">
-                        <option value="soja">Soja</option>
-                        <option value="milho">Milho</option>
-                        <option value="algodao">Algodão</option>
-                    </select>
-                    <br />
-                    <CarInfo battery={72} />
+                    <CarInfo />
                     <br />
                     <CarRoute />
                     <br />
-                    <Sweep
-                        imageNumber={8}
-                        leafNumber={139}
-                        affectedAreas={23}
-                        healthyQuantity={3}
-                        warningQuantity={3}
-                        criticalQuantity={2}
-                    />
+                    <Sweep resumo={resumo} carregando={carregandoResumo} />
                     <br />
-                    <Health health={69} />
+                    <Health resumo={resumo} carregando={carregandoResumo} />
                 </div>
             </div>
         </>
