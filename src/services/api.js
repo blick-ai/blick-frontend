@@ -10,6 +10,49 @@ export class SessaoExpiradaError extends Error {
     }
 }
 
+// cache da listagem no localStorage — sobrevive a reload do navegador.
+// TTL curto (1 minuto): tempo suficiente pra reload/troca de aba parecer
+// instantaneo, curto o bastante pra nao mostrar dado velho por muito
+// tempo numa base que ainda esta sendo atualizada ativamente.
+const CACHE_PREFIXO = "blick_cache_capturas:"
+const CACHE_TTL_MS = 60 * 1000
+
+function chaveCache(params) {
+    return CACHE_PREFIXO + JSON.stringify(params)
+}
+
+function lerCache(params) {
+    try {
+        const bruto = localStorage.getItem(chaveCache(params))
+        if (!bruto) return null
+        const { timestamp, dados } = JSON.parse(bruto)
+        if (Date.now() - timestamp > CACHE_TTL_MS) return null
+        return dados
+    } catch {
+        return null // cache e so uma otimizacao — qualquer erro aqui, ignora e segue sem ele
+    }
+}
+
+function salvarCache(params, dados) {
+    try {
+        localStorage.setItem(chaveCache(params), JSON.stringify({ timestamp: Date.now(), dados }))
+    } catch {
+        // localStorage pode falhar (modo privado, cota cheia) — nunca
+        // deve quebrar a aplicacao por causa disso
+    }
+}
+
+/** Limpa todo o cache de listagem — chamado depois de qualquer mudanca
+ * real (excluir captura, reclassificar) pra nao mostrar dado obsoleto. */
+function limparCacheListagem() {
+    try {
+        const chaves = Object.keys(localStorage).filter((k) => k.startsWith(CACHE_PREFIXO))
+        chaves.forEach((k) => localStorage.removeItem(k))
+    } catch {
+        // idem — falha ao limpar cache nao pode quebrar a aplicacao
+    }
+}
+
 function getToken() {
     return localStorage.getItem("access_token")
 }
@@ -117,6 +160,8 @@ export async function listarCapturas({
     dataFim,
     plantacaoId,
 } = {}) {
+    const chaveParams = { pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId }
+
     const params = new URLSearchParams()
     params.set("pagina", String(pagina))
     params.set("tamanhoPagina", String(tamanhoPagina))
@@ -127,7 +172,27 @@ export async function listarCapturas({
     if (plantacaoId) params.set("plantacaoId", plantacaoId)
 
     const resposta = await apiFetch(`/capturas?${params.toString()}`)
-    return normalizarListaResposta(resposta)
+    const resultado = normalizarListaResposta(resposta)
+    salvarCache(chaveParams, resultado)
+    return resultado
+}
+
+/**
+ * Le a listagem do cache local, SEM fazer chamada de rede — usado pra
+ * mostrar dado na hora (reload do navegador, por exemplo) enquanto a
+ * versao atualizada busca por tras. Retorna null se nao tem cache valido
+ * (nesse caso o chamador deve mostrar o carregamento normal).
+ */
+export function obterCapturasDoCache({
+    pagina = 1,
+    tamanhoPagina = 8,
+    status,
+    statusGeral,
+    dataInicio,
+    dataFim,
+    plantacaoId,
+} = {}) {
+    return lerCache({ pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId })
 }
 
 /**
@@ -179,7 +244,9 @@ export async function obterResumoGeral(plantacaoId) {
 export async function excluirCaptura(capturaId, timestamp, plantacaoId) {
     const params = new URLSearchParams({ timestamp })
     if (plantacaoId) params.set("plantacao_id", plantacaoId)
-    return apiFetch(`/capturas/${capturaId}?${params.toString()}`, { method: "DELETE" })
+    const resultado = await apiFetch(`/capturas/${capturaId}?${params.toString()}`, { method: "DELETE" })
+    limparCacheListagem()
+    return resultado
 }
 
 export { API_URL }
