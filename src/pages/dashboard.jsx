@@ -6,7 +6,7 @@ import PlantHighlight from "../components/plantHighlight"
 import FilterPanel from "../components/filterPanel"
 import Pagination from "../components/pagination"
 import SessaoExpiradaModal from "../components/sessaoExpiradaModal"
-import { listarCapturas, obterCaptura, obterResumoGeral, SessaoExpiradaError } from "../services/api"
+import { listarCapturas, obterCaptura, obterCapturasDoCache, obterResumoGeral, SessaoExpiradaError } from "../services/api"
 
 const TAMANHO_PAGINA = 8
 
@@ -41,18 +41,32 @@ export default function Dashboard() {
     useEffect(() => {
         let cancelado = false
 
-        async function carregar() {
+        const paramsBusca = {
+            pagina,
+            tamanhoPagina: TAMANHO_PAGINA,
+            status: filtros.status || undefined,
+            statusGeral: filtros.statusGeral || undefined,
+            dataInicio: filtros.dataInicio || undefined,
+            dataFim: filtros.dataFim || undefined,
+        }
+
+        // mostra o cache na hora, se tiver — reload do navegador ou troca
+        // de filtro repetida parecem instantaneos, sem esperar a rede
+        const doCache = obterCapturasDoCache(paramsBusca)
+        if (doCache) {
+            setCapturas(doCache.capturas)
+            setTotal(doCache.total)
+            setTotalPaginas(doCache.totalPaginas)
+            setErroLista("")
+            setCarregandoLista(false)
+        } else {
             setCarregandoLista(true)
             setErroLista("")
+        }
+
+        async function carregar() {
             try {
-                const resultado = await listarCapturas({
-                    pagina,
-                    tamanhoPagina: TAMANHO_PAGINA,
-                    status: filtros.status || undefined,
-                    statusGeral: filtros.statusGeral || undefined,
-                    dataInicio: filtros.dataInicio || undefined,
-                    dataFim: filtros.dataFim || undefined,
-                })
+                const resultado = await listarCapturas(paramsBusca)
                 if (cancelado) return
                 setCapturas(resultado.capturas)
                 setTotal(resultado.total)
@@ -63,7 +77,12 @@ export default function Dashboard() {
                     setSessaoExpirada(true)
                     return
                 }
-                setErroLista(erro.message || "Não foi possível carregar as capturas.")
+                // se ja tinha dado do cache em tela, um erro na
+                // atualizacao por tras nao precisa esconder o que ja
+                // esta mostrando — so avisa se nao tinha nada exibido
+                if (!doCache) {
+                    setErroLista(erro.message || "Não foi possível carregar as capturas.")
+                }
             } finally {
                 if (!cancelado) setCarregandoLista(false)
             }
