@@ -176,7 +176,7 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
                                         : "A classificação desta captura falhou."}
                                 </p>
                                 {status === "ERRO" && erroDetalhes && (
-                                    <p className="text-[#C75050] text-xs font-mono break-words">{erroDetalhes}</p>
+                                    <p className="text-[#C75050] text-xs font-mono wrap-break-word">{erroDetalhes}</p>
                                 )}
                             </>
                         )}
@@ -195,11 +195,9 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
                                     <VitalCard
                                         key={classe}
                                         label={LABEL_CLASSE[classe] || classe}
-                                        subtitle={classe === statusGeral ? "Classe prevista" : ""}
                                         value={Math.round(valor * 100)}
                                         color={info.color}
                                         bgColor={info.bg}
-                                        statusLabel={classe === statusGeral ? "PREVISTA" : ""}
                                         icon={
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
