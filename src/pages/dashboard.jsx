@@ -180,8 +180,8 @@ export default function Dashboard() {
                         <FilterPanel filtros={filtros} onChange={handleFiltrosChange} onLimpar={handleLimparFiltros} />
                     }
                 />
-                <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
-                    <div className={`flex flex-col gap-3 min-w-0 ${selecionada ? "w-full lg:w-1/2" : "w-full"}`}>
+                <div className="flex flex-col min-[1600px]:flex-row gap-4 flex-1 min-h-0">
+                    <div className={`flex flex-col gap-3 min-w-0 ${selecionada ? "w-full min-[1600px]:w-1/2" : "w-full"}`}>
                         <PhotoList
                             capturas={capturasFiltradas}
                             selectedId={selecionada?.capturaId}
@@ -192,7 +192,7 @@ export default function Dashboard() {
                         <Pagination paginaAtual={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
                     </div>
                     {selecionada && (
-                        <div className="flex flex-col lg:w-1/2 lg:shrink-0 overflow-y-auto">
+                        <div className="flex flex-col min-[1600px]:w-1/2 min-[1600px]:shrink-0 overflow-y-auto">
                             <PlantHighlight
                                 captura={detalhe}
                                 carregando={carregandoDetalhe}
