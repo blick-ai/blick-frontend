@@ -5,19 +5,21 @@ export const STATUS_CONFIG = {
     nao_milho: { label: "NÃO É MILHO", color: "#8A898B", bg: "#232323" },
 }
 
+export const GRUPOS_STATUS_GERAL = {
+    alerta: { label: "PRAGA / DOENÇA", color: "#D4A34A", valores: ["praga", "doenca"] },
+}
+
 const STATUS_PADRAO = { label: "PENDENTE", color: "#8A898B", bg: "#232323" }
 
 export function statusInfo(statusGeral) {
     return STATUS_CONFIG[statusGeral] || STATUS_PADRAO
 }
 
-/** Converte confianca (0-1, como vem da API) em porcentagem inteira pra exibir. */
 export function paraPercentual(confianca) {
     if (confianca === null || confianca === undefined) return null
     return Math.round(confianca * 100)
 }
 
-/** Formata um timestamp ISO ("2026-08-01T14:37:55Z") pro formato HH:MM:SS local. */
 export function formatarHora(timestampIso) {
     if (!timestampIso) return "—"
     const data = new Date(timestampIso)
@@ -25,7 +27,6 @@ export function formatarHora(timestampIso) {
     return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
-/** Formata um timestamp ISO pro formato DD/MM/AAAA. */
 export function formatarData(timestampIso) {
     if (!timestampIso) return "—"
     const data = new Date(timestampIso)

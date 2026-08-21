@@ -1,8 +1,4 @@
 const API_URL = import.meta.env.VITE_API_URL
-
-/** Erro especifico pra token expirado/invalido (401) — o dashboard usa
- * isso pra distinguir "sessao expirou" de qualquer outro erro de API e
- * mostrar o modal de sessao expirada em vez da mensagem de erro comum. */
 export class SessaoExpiradaError extends Error {
     constructor() {
         super("Sessão expirada")
@@ -10,10 +6,7 @@ export class SessaoExpiradaError extends Error {
     }
 }
 
-// cache da listagem no localStorage — sobrevive a reload do navegador.
-// TTL curto (1 minuto): tempo suficiente pra reload/troca de aba parecer
-// instantaneo, curto o bastante pra nao mostrar dado velho por muito
-// tempo numa base que ainda esta sendo atualizada ativamente.
+import { GRUPOS_STATUS_GERAL } from "../utils/status"
 const CACHE_PREFIXO = "blick_cache_capturas:"
 const CACHE_TTL_MS = 60 * 1000
 
@@ -29,7 +22,7 @@ function lerCache(params) {
         if (Date.now() - timestamp > CACHE_TTL_MS) return null
         return dados
     } catch {
-        return null // cache e so uma otimizacao — qualquer erro aqui, ignora e segue sem ele
+        return null
     }
 }
 
@@ -42,8 +35,6 @@ function salvarCache(params, dados) {
     }
 }
 
-/** Limpa todo o cache de listagem — chamado depois de qualquer mudanca
- * real (excluir captura, reclassificar) pra nao mostrar dado obsoleto. */
 function limparCacheListagem() {
     try {
         const chaves = Object.keys(localStorage).filter((k) => k.startsWith(CACHE_PREFIXO))
@@ -81,13 +72,6 @@ async function apiFetch(path, options = {}) {
     return response.json()
 }
 
-/**
- * Le o primeiro nome de campo que existir no objeto, testando na ordem
- * dada. Existe pra tolerar o backend respondendo ora em camelCase, ora
- * em snake_case (durante deploys onde front/back ficam momentaneamente
- * em versoes diferentes) — sem isso, um deploy dessincronizado faz a
- * tela inteira parecer quebrada mesmo com os dados certos chegando.
- */
 function campo(objeto, ...nomes) {
     for (const nome of nomes) {
         if (objeto[nome] !== undefined) return objeto[nome]
@@ -133,9 +117,6 @@ function normalizarDetalhe(item) {
         confiancaStatusGeral: campo(item, "confiancaStatusGeral", "confianca_status_geral"),
         subtipo: item.subtipo,
         confiancaSubtipo: campo(item, "confiancaSubtipo", "confianca_subtipo"),
-        // as chaves DE DENTRO de probabilidades (saudavel/praga/doenca/nao_milho)
-        // sao nomes de classe, nao nomes de campo — nunca mudam de formato,
-        // entao esse objeto passa direto, sem normalizar as chaves internas
         probabilidades: item.probabilidades,
         modeloVersaoBorda: campo(item, "modeloVersaoBorda", "modelo_versao_borda"),
         confiancaBorda: campo(item, "confiancaBorda", "confianca_borda"),
@@ -147,10 +128,6 @@ function normalizarDetalhe(item) {
     }
 }
 
-/**
- * Lista capturas (endpoint geral) — mais recentes primeiro por padrão.
- * Pensado pra alimentar a lista/dashboard, sem trazer o detalhe completo.
- */
 export async function listarCapturas({
     pagina = 1,
     tamanhoPagina = 8,
@@ -160,6 +137,11 @@ export async function listarCapturas({
     dataFim,
     plantacaoId,
 } = {}) {
+    const grupo = GRUPOS_STATUS_GERAL[statusGeral]
+    if (grupo) {
+        return listarCapturasGrupo({ pagina, tamanhoPagina, status, dataInicio, dataFim, plantacaoId, statusGeralOriginal: statusGeral, valores: grupo.valores })
+    }
+
     const chaveParams = { pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId }
 
     const params = new URLSearchParams()
@@ -177,12 +159,37 @@ export async function listarCapturas({
     return resultado
 }
 
-/**
- * Le a listagem do cache local, SEM fazer chamada de rede — usado pra
- * mostrar dado na hora (reload do navegador, por exemplo) enquanto a
- * versao atualizada busca por tras. Retorna null se nao tem cache valido
- * (nesse caso o chamador deve mostrar o carregamento normal).
- */
+async function listarCapturasGrupo({ pagina, tamanhoPagina, status, dataInicio, dataFim, plantacaoId, statusGeralOriginal, valores }) {
+    const chaveParams = { pagina, tamanhoPagina, status, statusGeral: statusGeralOriginal, dataInicio, dataFim, plantacaoId }
+    const tamanhoParcial = pagina * tamanhoPagina
+
+    const respostas = await Promise.all(
+        valores.map((valor) => {
+            const params = new URLSearchParams()
+            params.set("pagina", "1")
+            params.set("tamanhoPagina", String(tamanhoParcial))
+            if (status) params.set("status", status)
+            params.set("statusGeral", valor)
+            if (dataInicio) params.set("dataInicio", dataInicio)
+            if (dataFim) params.set("dataFim", dataFim)
+            if (plantacaoId) params.set("plantacaoId", plantacaoId)
+            return apiFetch(`/capturas?${params.toString()}`).then(normalizarListaResposta)
+        })
+    )
+
+    const todasCapturas = respostas.flatMap((r) => r.capturas)
+    todasCapturas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+    const total = respostas.reduce((soma, r) => soma + r.total, 0)
+    const totalPaginas = Math.max(1, Math.ceil(total / tamanhoPagina))
+    const inicio = (pagina - 1) * tamanhoPagina
+    const capturas = todasCapturas.slice(inicio, inicio + tamanhoPagina)
+
+    const resultado = { capturas, pagina, tamanhoPagina, total, totalPaginas }
+    salvarCache(chaveParams, resultado)
+    return resultado
+}
+
 export function obterCapturasDoCache({
     pagina = 1,
     tamanhoPagina = 8,
@@ -195,14 +202,6 @@ export function obterCapturasDoCache({
     return lerCache({ pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId })
 }
 
-/**
- * Busca o detalhe completo de UMA captura (endpoint especifico) — so deve
- * ser chamado quando o usuario clica numa captura da lista, nunca em lote.
- *
- * Nota: esse endpoint especifico ainda usa "timestamp"/"plantacao_id" em
- * snake_case na query (diferente do /capturas geral, que ja usa camelCase)
- * — reflete o estado atual do backend, nao e escolha do front.
- */
 export async function obterCaptura(capturaId, timestamp, plantacaoId) {
     const params = new URLSearchParams({ timestamp })
     if (plantacaoId) params.set("plantacao_id", plantacaoId)
@@ -210,37 +209,23 @@ export async function obterCaptura(capturaId, timestamp, plantacaoId) {
     return normalizarDetalhe(resposta)
 }
 
-/**
- * Busca as contagens agregadas por categoria — usado no resumo lateral do
- * dashboard. Cada chamada usa tamanhoPagina=1 so pra ler o "total" da
- * resposta (nao traz os itens de verdade), entao e uma operacao barata
- * mesmo rodando 6 vezes em paralelo.
- */
 export async function obterResumoGeral(plantacaoId) {
-    const [saudavel, praga, doenca, naoMilho, erro, geral] = await Promise.all([
+    const [saudavel, praga, doenca, erro, geral] = await Promise.all([
         listarCapturas({ statusGeral: "saudavel", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ statusGeral: "praga", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ statusGeral: "doenca", tamanhoPagina: 1, plantacaoId }),
-        listarCapturas({ statusGeral: "nao_milho", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ status: "ERRO", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ tamanhoPagina: 1, plantacaoId }),
     ])
 
     return {
         saudavel: saudavel.total,
-        praga: praga.total,
-        doenca: doenca.total,
-        naoMilho: naoMilho.total,
+        alerta: praga.total + doenca.total,
         impossivel: erro.total, // classificacao impossivel de ser feita (status ERRO)
         total: geral.total,
     }
 }
 
-/**
- * Exclusao DEFINITIVA de uma captura — apaga o registro e a imagem no
- * bucket, sem volta. Usado quando o usuario revisa o detalhe e conclui
- * que a classificacao esta errada/nao serve pra nada.
- */
 export async function excluirCaptura(capturaId, timestamp, plantacaoId) {
     const params = new URLSearchParams({ timestamp })
     if (plantacaoId) params.set("plantacao_id", plantacaoId)
