@@ -5,6 +5,11 @@ export const STATUS_CONFIG = {
     nao_milho: { label: "NÃO É MILHO", color: "#8A898B", bg: "#232323" },
 }
 
+// Usado especificamente pra alimentar o mapa de calor (ver
+// obterPontosMapaCalor em services/api.js) — o filtro do dashboard usa
+// os 4 status individuais direto (saudavel/praga/doenca/nao_milho), sem
+// agrupamento. Só o mapa de calor junta praga+doenca num unico conjunto
+// de pontos, pra nao precisar de 2 mapas separados.
 export const GRUPOS_STATUS_GERAL = {
     alerta: { label: "PRAGA / DOENÇA", color: "#D4A34A", valores: ["praga", "doenca"] },
 }

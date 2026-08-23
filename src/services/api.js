@@ -137,11 +137,6 @@ export async function listarCapturas({
     dataFim,
     plantacaoId,
 } = {}) {
-    const grupo = GRUPOS_STATUS_GERAL[statusGeral]
-    if (grupo) {
-        return listarCapturasGrupo({ pagina, tamanhoPagina, status, dataInicio, dataFim, plantacaoId, statusGeralOriginal: statusGeral, valores: grupo.valores })
-    }
-
     const chaveParams = { pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId }
 
     const params = new URLSearchParams()
@@ -155,37 +150,6 @@ export async function listarCapturas({
 
     const resposta = await apiFetch(`/capturas?${params.toString()}`)
     const resultado = normalizarListaResposta(resposta)
-    salvarCache(chaveParams, resultado)
-    return resultado
-}
-
-async function listarCapturasGrupo({ pagina, tamanhoPagina, status, dataInicio, dataFim, plantacaoId, statusGeralOriginal, valores }) {
-    const chaveParams = { pagina, tamanhoPagina, status, statusGeral: statusGeralOriginal, dataInicio, dataFim, plantacaoId }
-    const tamanhoParcial = pagina * tamanhoPagina
-
-    const respostas = await Promise.all(
-        valores.map((valor) => {
-            const params = new URLSearchParams()
-            params.set("pagina", "1")
-            params.set("tamanhoPagina", String(tamanhoParcial))
-            if (status) params.set("status", status)
-            params.set("statusGeral", valor)
-            if (dataInicio) params.set("dataInicio", dataInicio)
-            if (dataFim) params.set("dataFim", dataFim)
-            if (plantacaoId) params.set("plantacaoId", plantacaoId)
-            return apiFetch(`/capturas?${params.toString()}`).then(normalizarListaResposta)
-        })
-    )
-
-    const todasCapturas = respostas.flatMap((r) => r.capturas)
-    todasCapturas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-
-    const total = respostas.reduce((soma, r) => soma + r.total, 0)
-    const totalPaginas = Math.max(1, Math.ceil(total / tamanhoPagina))
-    const inicio = (pagina - 1) * tamanhoPagina
-    const capturas = todasCapturas.slice(inicio, inicio + tamanhoPagina)
-
-    const resultado = { capturas, pagina, tamanhoPagina, total, totalPaginas }
     salvarCache(chaveParams, resultado)
     return resultado
 }
@@ -210,19 +174,32 @@ export async function obterCaptura(capturaId, timestamp, plantacaoId) {
 }
 
 export async function obterResumoGeral(plantacaoId) {
-    const [saudavel, praga, doenca, erro, geral] = await Promise.all([
+    const [saudavel, praga, doenca, naoMilho, erro] = await Promise.all([
         listarCapturas({ statusGeral: "saudavel", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ statusGeral: "praga", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ statusGeral: "doenca", tamanhoPagina: 1, plantacaoId }),
+        listarCapturas({ statusGeral: "nao_milho", tamanhoPagina: 1, plantacaoId }),
         listarCapturas({ status: "ERRO", tamanhoPagina: 1, plantacaoId }),
-        listarCapturas({ tamanhoPagina: 1, plantacaoId }),
     ])
+
+    // "total" aqui e o universo usado tanto no card de resumo quanto nos
+    // percentuais de distribuicao — de proposito, SO soma saudavel+praga+
+    // doenca (plantas de milho classificadas com sucesso). Pendente e
+    // ERRO nao entram (nao sao plantas classificadas de verdade), e
+    // "nao_milho" tambem fica de fora (nao e uma planta de milho pra
+    // medir saude, entao inflaria a base sem fazer sentido semantico —
+    // era exatamente esse o bug: o total antigo somava TUDO, incluindo
+    // pendente/erro/nao_milho, fazendo os percentuais saírem muito mais
+    // baixos do que a proporcao real entre as classes de saude do milho).
+    const totalPlantasClassificadas = saudavel.total + praga.total + doenca.total
 
     return {
         saudavel: saudavel.total,
-        alerta: praga.total + doenca.total,
+        praga: praga.total,
+        doenca: doenca.total,
+        naoMilho: naoMilho.total,
         impossivel: erro.total, // classificacao impossivel de ser feita (status ERRO)
-        total: geral.total,
+        total: totalPlantasClassificadas,
     }
 }
 
@@ -232,6 +209,44 @@ export async function excluirCaptura(capturaId, timestamp, plantacaoId) {
     const resultado = await apiFetch(`/capturas/${capturaId}?${params.toString()}`, { method: "DELETE" })
     limparCacheListagem()
     return resultado
+}
+
+/**
+ * Busca os pontos (latitude/longitude) pra alimentar o mapa de calor —
+ * SEMPRE junta praga + doença num unico conjunto, independente de como
+ * o filtro do dashboard estiver configurado (que agora e separado em 3
+ * opcoes: saudavel/praga/doenca). O usuario pode querer distinguir
+ * praga de doenca na LISTA, mas o mapa de calor mostra as duas juntas
+ * como "areas afetadas", sem precisar de 2 mapas separados.
+ *
+ * Busca TODAS as paginas de cada status (nao so a primeira) — um mapa
+ * de calor precisa da extensao completa dos dados, nao so os 8 mais
+ * recentes.
+ */
+export async function obterPontosMapaCalor(plantacaoId) {
+    async function buscarTodasAsCapturas(statusGeral) {
+        const primeira = await listarCapturas({ statusGeral, tamanhoPagina: 100, pagina: 1, plantacaoId })
+        const todas = [...primeira.capturas]
+        for (let pagina = 2; pagina <= primeira.totalPaginas; pagina++) {
+            const resultado = await listarCapturas({ statusGeral, tamanhoPagina: 100, pagina, plantacaoId })
+            todas.push(...resultado.capturas)
+        }
+        return todas
+    }
+
+    const resultadosPorStatus = await Promise.all(
+        GRUPOS_STATUS_GERAL.alerta.valores.map(buscarTodasAsCapturas)
+    )
+
+    return resultadosPorStatus.flat()
+        .filter((c) => c.latitude != null && c.longitude != null)
+        .map((c) => ({
+            capturaId: c.capturaId,
+            latitude: c.latitude,
+            longitude: c.longitude,
+            statusGeral: c.statusGeral,
+            confiancaStatusGeral: c.confiancaStatusGeral,
+        }))
 }
 
 export { API_URL }

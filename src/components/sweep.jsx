@@ -1,5 +1,5 @@
 import QuantityBar from "./quantityBar"
-import { STATUS_CONFIG, GRUPOS_STATUS_GERAL } from "../utils/status"
+import { STATUS_CONFIG } from "../utils/status"
 
 export default function Sweep({ resumo, carregando }) {
     if (carregando || !resumo) {
@@ -11,7 +11,7 @@ export default function Sweep({ resumo, carregando }) {
         )
     }
 
-    const { total, saudavel, alerta } = resumo
+    const { total, saudavel, praga, doenca } = resumo
 
     return (
         <div className="bg-[#16191C] w-full border border-[#8A898B]/25 flex flex-col rounded-lg p-3 gap-2">
@@ -22,7 +22,8 @@ export default function Sweep({ resumo, carregando }) {
             </div>
 
             <QuantityBar status="Saudável" quantity={saudavel} total={total} color={STATUS_CONFIG.saudavel.color} />
-            <QuantityBar status="Praga / Doença" quantity={alerta} total={total} color={GRUPOS_STATUS_GERAL.alerta.color} />
+            <QuantityBar status="Praga" quantity={praga} total={total} color={STATUS_CONFIG.praga.color} />
+            <QuantityBar status="Doença" quantity={doenca} total={total} color={STATUS_CONFIG.doenca.color} />
         </div>
     )
 }
