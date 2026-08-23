@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { STATUS_CONFIG, GRUPOS_STATUS_GERAL } from "../utils/status"
+import { STATUS_CONFIG } from "../utils/status"
 
 const OPCOES_STATUS_GERAL = [
     { value: "", label: "Todas" },
     { value: "saudavel", label: STATUS_CONFIG.saudavel.label },
-    { value: "alerta", label: GRUPOS_STATUS_GERAL.alerta.label },
+    { value: "praga", label: STATUS_CONFIG.praga.label },
+    { value: "doenca", label: STATUS_CONFIG.doenca.label },
 ]
 
 function GrupoBotoes({ titulo, opcoes, valorAtual, onChange }) {

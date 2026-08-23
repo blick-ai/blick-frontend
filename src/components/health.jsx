@@ -1,5 +1,5 @@
 import healthIcon from "../assets/images/health.png"
-import { STATUS_CONFIG, GRUPOS_STATUS_GERAL } from "../utils/status"
+import { STATUS_CONFIG } from "../utils/status"
 
 function percentual(quantidade, total) {
     if (!total) return 0
@@ -19,11 +19,12 @@ export default function Health({ resumo, carregando }) {
         )
     }
 
-    const { total, saudavel, alerta } = resumo
+    const { total, saudavel, praga, doenca } = resumo
 
     const itens = [
         { chave: "saudavel", label: STATUS_CONFIG.saudavel.label, color: STATUS_CONFIG.saudavel.color, quantidade: saudavel },
-        { chave: "alerta", label: GRUPOS_STATUS_GERAL.alerta.label, color: GRUPOS_STATUS_GERAL.alerta.color, quantidade: alerta },
+        { chave: "praga", label: STATUS_CONFIG.praga.label, color: STATUS_CONFIG.praga.color, quantidade: praga },
+        { chave: "doenca", label: STATUS_CONFIG.doenca.label, color: STATUS_CONFIG.doenca.color, quantidade: doenca },
     ]
 
     return (
@@ -32,7 +33,7 @@ export default function Health({ resumo, carregando }) {
                 <img src={healthIcon} className="w-3.5 h-auto" />
                 <p className="text-[#8A898B] font-bold text-[10px]">DISTRIBUIÇÃO GERAL</p>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
                 {itens.map((item) => (
                     <div key={item.chave} className="flex flex-col">
                         <p className="font-extrabold text-lg" style={{ color: item.color }}>
