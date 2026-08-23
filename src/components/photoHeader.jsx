@@ -1,4 +1,4 @@
-export default function PhotoHeader({ total, filtroSlot }) {
+export default function PhotoHeader({filtroSlot }) {
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
