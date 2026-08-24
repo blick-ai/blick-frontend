@@ -6,6 +6,7 @@ import PlantHighlight from "../components/plantHighlight"
 import FilterPanel from "../components/filterPanel"
 import Pagination from "../components/pagination"
 import SessaoExpiradaModal from "../components/sessaoExpiradaModal"
+import UploadModal from "../components/uploadModal"
 import { listarCapturas, obterCaptura, obterCapturasDoCache, obterResumoGeral, SessaoExpiradaError } from "../services/api"
 
 const TAMANHO_PAGINA = 8
@@ -29,6 +30,7 @@ export default function Dashboard() {
     const [resumoGeral, setResumoGeral] = useState(null)
     const [carregandoResumo, setCarregandoResumo] = useState(true)
     const [refreshTick, setRefreshTick] = useState(0)
+    const [mostrarUploadModal, setMostrarUploadModal] = useState(false)
 
     useEffect(() => {
         let cancelado = false
@@ -99,7 +101,7 @@ export default function Dashboard() {
 
         carregarResumo()
         return () => { cancelado = true }
-    }, [])
+    }, [refreshTick])
 
     useEffect(() => {
         if (!selecionada) {
@@ -157,7 +159,12 @@ export default function Dashboard() {
                     busca={busca}
                     onBuscaChange={setBusca}
                     filtroSlot={
-                        <FilterPanel filtros={filtros} onChange={handleFiltrosChange} onLimpar={handleLimparFiltros} />
+                        <FilterPanel
+                            filtros={filtros}
+                            onChange={handleFiltrosChange}
+                            onLimpar={handleLimparFiltros}
+                            onCarregarCaptura={() => setMostrarUploadModal(true)}
+                        />
                     }
                 />
                 <div className="flex flex-col gap-3 min-w-0 flex-1 min-h-0">
@@ -191,6 +198,14 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {mostrarUploadModal && (
+                <UploadModal
+                    onFechar={() => setMostrarUploadModal(false)}
+                    onSucesso={() => setRefreshTick((t) => t + 1)}
+                    onSessaoExpirada={() => setSessaoExpirada(true)}
+                />
             )}
         </div>
     )

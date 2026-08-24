@@ -7,6 +7,7 @@ import cameraGray from "../assets/images/camera-gray.png"
 import locationPin from "../assets/images/location-pin.png"
 import { statusInfo, formatarHora, formatarData } from "../utils/status"
 import { excluirCaptura, SessaoExpiradaError } from "../services/api"
+import { useToast } from "../contexts/toastContext"
 
 const LABEL_STATUS_PIPELINE = {
     PENDENTE: "Pendente de classificação",
@@ -22,9 +23,9 @@ const LABEL_CLASSE = {
 }
 
 export default function PlantHighlight({ captura, carregando, erro, onExcluida, onSessaoExpirada, onFechar }) {
+    const { mostrarToast } = useToast()
     const [excluindo, setExcluindo] = useState(false)
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
-    const [erroExclusao, setErroExclusao] = useState("")
     if (carregando) {
         return (
             <div className="bg-[#1B2125] border border-[#8A898B]/25 rounded-2xl p-8 flex items-center justify-center flex-1">
@@ -63,17 +64,18 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
 
     async function handleConfirmarExclusao() {
         setExcluindo(true)
-        setErroExclusao("")
         try {
             await excluirCaptura(capturaId, timestamp)
             setMostrarConfirmacao(false)
+            mostrarToast("sucesso", "Captura excluída com sucesso")
             onExcluida?.(capturaId)
         } catch (erro) {
             if (erro instanceof SessaoExpiradaError) {
                 setMostrarConfirmacao(false)
                 onSessaoExpirada?.()
             } else {
-                setErroExclusao(erro.message || "Não foi possível excluir esta captura.")
+                setMostrarConfirmacao(false)
+                mostrarToast("erro", erro.message || "Não foi possível excluir esta captura.")
             }
         } finally {
             setExcluindo(false)
@@ -211,17 +213,6 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
                     carregando={excluindo}
                     onConfirmar={handleConfirmarExclusao}
                     onCancelar={() => setMostrarConfirmacao(false)}
-                />
-            )}
-
-            {erroExclusao && (
-                <ConfirmModal
-                    titulo="Não foi possível excluir"
-                    mensagem={erroExclusao}
-                    textoConfirmar="Entendi"
-                    ocultarCancelar
-                    onConfirmar={() => setErroExclusao("")}
-                    onCancelar={() => setErroExclusao("")}
                 />
             )}
         </div>
