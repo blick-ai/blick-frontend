@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { MemoryRouter } from "react-router"
 import Dashboard from "../pages/dashboard"
+import { ToastProvider } from "../contexts/toastContext"
 import * as api from "../services/api"
 
 // 1. Mock do localStorage
@@ -97,9 +98,11 @@ afterEach(() => {
 describe("Dashboard", () => {
     test("carrega a lista de capturas ao montar, sem buscar detalhe nenhum ainda", async () => {
         render(
-            <MemoryRouter>
-                <Dashboard />
-            </MemoryRouter>
+            <ToastProvider>
+                <MemoryRouter>
+                    <Dashboard />
+                </MemoryRouter>
+            </ToastProvider>
         )
 
         await waitFor(() => {
@@ -112,9 +115,11 @@ describe("Dashboard", () => {
 
     test("busca o detalhe somente quando o usuario clica na captura", async () => {
         render(
-            <MemoryRouter>
-                <Dashboard />
-            </MemoryRouter>
+            <ToastProvider>
+                <MemoryRouter>
+                    <Dashboard />
+                </MemoryRouter>
+            </ToastProvider>
         )
 
         const item = await screen.findByText(/20260801143755-32204d9f/i)
