@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { enviarCaptura, SessaoExpiradaError } from "../services/api"
 import { useToast } from "../contexts/toastContext"
+import LocationMapPicker from "./locationMapPicker"
 
 function paraDiaMesAno(dataISO) {
     // input type="date" devolve "YYYY-MM-DD" — o backend espera "DD/MM/YYYY"
@@ -30,6 +31,7 @@ export default function UploadModal({ onFechar, onSucesso, onSessaoExpirada }) {
     const [arquivo, setArquivo] = useState(null)
     const [nomeArquivo, setNomeArquivo] = useState("")
     const [enviando, setEnviando] = useState(false)
+    const [mostrarMapa, setMostrarMapa] = useState(false)
 
     function obterLocalizacaoAtual() {
         if (!navigator.geolocation) {
@@ -140,13 +142,33 @@ export default function UploadModal({ onFechar, onSucesso, onSessaoExpirada }) {
                         </div>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={obterLocalizacaoAtual}
-                        className="text-[#4A9B9A] text-xs font-bold text-left hover:underline w-fit"
-                    >
-                        📍 Usar minha localização atual
-                    </button>
+                    <div className="flex flex-row gap-4 items-center">
+                        <button
+                            type="button"
+                            onClick={obterLocalizacaoAtual}
+                            className="text-[#4A9B9A] text-xs font-bold text-left hover:underline w-fit"
+                        >
+                            📍 Usar minha localização atual
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMostrarMapa((v) => !v)}
+                            className="text-[#4A9B9A] text-xs font-bold text-left hover:underline w-fit"
+                        >
+                            🗺️ {mostrarMapa ? "Ocultar mapa" : "Escolher no mapa"}
+                        </button>
+                    </div>
+
+                    {mostrarMapa && (
+                        <LocationMapPicker
+                            latitude={latitude}
+                            longitude={longitude}
+                            onSelecionar={(lat, lng) => {
+                                setLatitude(String(lat))
+                                setLongitude(String(lng))
+                            }}
+                        />
+                    )}
 
                     <div className="flex flex-col gap-1">
                         <label htmlFor="upload-imagem" className="text-[#8A898B] text-xs font-bold uppercase">Imagem da planta *</label>
