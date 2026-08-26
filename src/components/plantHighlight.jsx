@@ -57,6 +57,7 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
         imagemUrl,
         erroDetalhes,
         alertaEmitido,
+        origem,
     } = captura
 
     const { label, color, bg } = statusInfo(statusGeral)
@@ -98,6 +99,16 @@ export default function PlantHighlight({ captura, carregando, erro, onExcluida, 
                                     <p className="font-bold text-[10px] text-[#C75050]">⚠ ALERTA EMITIDO</p>
                                 </div>
                             )}
+                            <div
+                                className={`border rounded-full py-0.5 px-3 text-center ${origem === "manual"
+                                        ? "bg-[#4A9B9A]/20 border-[#4A9B9A]"
+                                        : "bg-[#8A898B]/20 border-[#8A898B]/40"
+                                    }`}
+                            >
+                                <p className={`font-bold text-[10px] ${origem === "manual" ? "text-[#4A9B9A]" : "text-[#8A898B]"}`}>
+                                    {origem === "manual" ? "📷 CAPTURA MANUAL" : "🚜 CAPTURA DO ROVER"}
+                                </p>
+                            </div>
                         </div>
                         <button
                             type="button"

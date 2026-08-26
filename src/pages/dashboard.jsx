@@ -11,7 +11,7 @@ import { listarCapturas, obterCaptura, obterCapturasDoCache, obterResumoGeral, S
 
 const TAMANHO_PAGINA = 8
 
-const FILTROS_VAZIOS = { statusGeral: "", dataInicio: "", dataFim: "" }
+const FILTROS_VAZIOS = { statusGeral: "", origem: "", dataInicio: "", dataFim: "" }
 
 export default function Dashboard() {
     const [filtros, setFiltros] = useState(FILTROS_VAZIOS)
@@ -39,6 +39,7 @@ export default function Dashboard() {
             pagina,
             tamanhoPagina: TAMANHO_PAGINA,
             statusGeral: filtros.statusGeral || undefined,
+            origem: filtros.origem || undefined,
             dataInicio: filtros.dataInicio || undefined,
             dataFim: filtros.dataFim || undefined,
         }

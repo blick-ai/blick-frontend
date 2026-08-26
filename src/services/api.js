@@ -141,23 +141,25 @@ export async function listarCapturas({
     tamanhoPagina = 8,
     status,
     statusGeral,
+    origem,
     dataInicio,
     dataFim,
     plantacaoId,
 } = {}) {
     if (!status && !statusGeral) {
         return listarCapturasMultiStatus({
-            pagina, tamanhoPagina, dataInicio, dataFim, plantacaoId, valores: STATUS_SAUDE_MILHO,
+            pagina, tamanhoPagina, origem, dataInicio, dataFim, plantacaoId, valores: STATUS_SAUDE_MILHO,
         })
     }
 
-    const chaveParams = { pagina, tamanhoPagina, status, statusGeral, dataInicio, dataFim, plantacaoId }
+    const chaveParams = { pagina, tamanhoPagina, status, statusGeral, origem, dataInicio, dataFim, plantacaoId }
 
     const params = new URLSearchParams()
     params.set("pagina", String(pagina))
     params.set("tamanhoPagina", String(tamanhoPagina))
     if (status) params.set("status", status)
     if (statusGeral) params.set("statusGeral", statusGeral)
+    if (origem) params.set("origem", origem)
     if (dataInicio) params.set("dataInicio", dataInicio)
     if (dataFim) params.set("dataFim", dataFim)
     if (plantacaoId) params.set("plantacaoId", plantacaoId)
@@ -168,13 +170,13 @@ export async function listarCapturas({
     return resultado
 }
 
-async function listarCapturasMultiStatus({ pagina, tamanhoPagina, dataInicio, dataFim, plantacaoId, valores }) {
-    const chaveParams = { pagina, tamanhoPagina, status: undefined, statusGeral: undefined, dataInicio, dataFim, plantacaoId }
+async function listarCapturasMultiStatus({ pagina, tamanhoPagina, origem, dataInicio, dataFim, plantacaoId, valores }) {
+    const chaveParams = { pagina, tamanhoPagina, status: undefined, statusGeral: undefined, origem, dataInicio, dataFim, plantacaoId }
     const itensNecessarios = pagina * tamanhoPagina
 
     const respostas = await Promise.all(
         valores.map((statusGeral) =>
-            listarCapturas({ statusGeral, tamanhoPagina: itensNecessarios, pagina: 1, dataInicio, dataFim, plantacaoId })
+            listarCapturas({ statusGeral, origem, tamanhoPagina: itensNecessarios, pagina: 1, dataInicio, dataFim, plantacaoId })
         )
     )
 

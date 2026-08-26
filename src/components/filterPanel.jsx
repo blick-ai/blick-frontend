@@ -8,6 +8,12 @@ const OPCOES_STATUS_GERAL = [
     { value: "doenca", label: STATUS_CONFIG.doenca.label },
 ]
 
+const OPCOES_ORIGEM = [
+    { value: "", label: "Todas" },
+    { value: "rover", label: "🚜 Rover" },
+    { value: "manual", label: "📷 Manual" },
+]
+
 function GrupoBotoes({ titulo, opcoes, valorAtual, onChange }) {
     return (
         <div className="flex flex-col gap-2">
@@ -36,6 +42,7 @@ export default function FilterPanel({ filtros, onChange, onLimpar, onCarregarCap
 
     const quantidadeAtiva = [
         filtros.statusGeral,
+        filtros.origem,
         filtros.dataInicio,
         filtros.dataFim,
     ].filter(Boolean).length
@@ -80,6 +87,13 @@ export default function FilterPanel({ filtros, onChange, onLimpar, onCarregarCap
                                 opcoes={OPCOES_STATUS_GERAL}
                                 valorAtual={filtros.statusGeral || ""}
                                 onChange={(v) => onChange({ ...filtros, statusGeral: v })}
+                            />
+
+                            <GrupoBotoes
+                                titulo="Origem da captura"
+                                opcoes={OPCOES_ORIGEM}
+                                valorAtual={filtros.origem || ""}
+                                onChange={(v) => onChange({ ...filtros, origem: v })}
                             />
 
                             <div className="flex flex-col gap-2">
