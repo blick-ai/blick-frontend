@@ -1,13 +1,6 @@
-import { useState } from "react"
-import { enviarCaptura, SessaoExpiradaError } from "../services/api"
+import { useEffect, useState } from "react"
+import { enviarCapturaSimples, SessaoExpiradaError } from "../services/api"
 import { useToast } from "../contexts/toastContext"
-import LocationMapPicker from "./locationMapPicker"
-
-function paraDiaMesAno(dataISO) {
-    // input type="date" devolve "YYYY-MM-DD" — o backend espera "DD/MM/YYYY"
-    const [ano, mes, dia] = dataISO.split("-")
-    return `${dia}/${mes}/${ano}`
-}
 
 function arquivoParaBase64(arquivo) {
     return new Promise((resolve, reject) => {
@@ -25,54 +18,38 @@ function arquivoParaBase64(arquivo) {
 export default function UploadModal({ onFechar, onSucesso, onSessaoExpirada }) {
     const { mostrarToast } = useToast()
 
-    const [data, setData] = useState("")
-    const [latitude, setLatitude] = useState("")
-    const [longitude, setLongitude] = useState("")
     const [arquivo, setArquivo] = useState(null)
-    const [nomeArquivo, setNomeArquivo] = useState("")
+    const [urlPreview, setUrlPreview] = useState(null)
     const [enviando, setEnviando] = useState(false)
-    const [mostrarMapa, setMostrarMapa] = useState(false)
 
-    function obterLocalizacaoAtual() {
-        if (!navigator.geolocation) {
-            mostrarToast("aviso", "Seu navegador não suporta localização automática.")
+    // gera/limpa a URL de preview sempre que o arquivo muda — evita
+    // vazamento de memoria (URL.revokeObjectURL) quando troca de foto
+    // ou fecha o modal
+    useEffect(() => {
+        if (!arquivo) {
+            setUrlPreview(null)
             return
         }
-        navigator.geolocation.getCurrentPosition(
-            (posicao) => {
-                setLatitude(String(posicao.coords.latitude))
-                setLongitude(String(posicao.coords.longitude))
-            },
-            () => mostrarToast("aviso", "Não foi possível obter sua localização — preencha manualmente.")
-        )
+        const url = URL.createObjectURL(arquivo)
+        setUrlPreview(url)
+        return () => URL.revokeObjectURL(url)
+    }, [arquivo])
+
+    function handleSelecionarArquivo(evento) {
+        const arquivoSelecionado = evento.target.files?.[0] || null
+        setArquivo(arquivoSelecionado)
     }
 
-    function validar() {
-        if (!data) return "A data da captura é obrigatória."
-        if (latitude === "" || Number.isNaN(Number(latitude))) return "A latitude é obrigatória."
-        if (longitude === "" || Number.isNaN(Number(longitude))) return "A longitude é obrigatória."
-        if (!arquivo) return "Selecione uma imagem da planta."
-        return null
-    }
-
-    async function handleEnviar(evento) {
-        evento.preventDefault()
-
-        const erroValidacao = validar()
-        if (erroValidacao) {
-            mostrarToast("aviso", erroValidacao)
+    async function handleEnviar() {
+        if (!arquivo) {
+            mostrarToast("aviso", "Selecione uma imagem da planta.")
             return
         }
 
         setEnviando(true)
         try {
             const imagemBase64 = await arquivoParaBase64(arquivo)
-            await enviarCaptura({
-                diaMesAno: paraDiaMesAno(data),
-                latitude: Number(latitude),
-                longitude: Number(longitude),
-                imagemBase64,
-            })
+            await enviarCapturaSimples({ imagemBase64 })
             mostrarToast("sucesso", "Captura adicionada com sucesso")
             onSucesso?.()
             onFechar()
@@ -103,111 +80,71 @@ export default function UploadModal({ onFechar, onSucesso, onSessaoExpirada }) {
                     </button>
                 </div>
 
-                <form onSubmit={handleEnviar} className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label htmlFor="upload-data" className="text-[#8A898B] text-xs font-bold uppercase">Data da captura *</label>
-                        <input
-                            id="upload-data"
-                            type="date"
-                            value={data}
-                            onChange={(e) => setData(e.target.value)}
-                            className="bg-[#16191C] border border-[#8A898B]/25 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#4A9B9A]"
-                        />
-                    </div>
+                <p className="text-[#8A898B] text-xs">
+                    A data da captura é lida automaticamente da própria foto — não é preciso preencher nada além da imagem.
+                </p>
 
-                    <div className="flex flex-row gap-3">
-                        <div className="flex flex-col gap-1 flex-1">
-                            <label htmlFor="upload-latitude" className="text-[#8A898B] text-xs font-bold uppercase">Latitude *</label>
-                            <input
-                                id="upload-latitude"
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="-23.6478"
-                                value={latitude}
-                                onChange={(e) => setLatitude(e.target.value)}
-                                className="bg-[#16191C] border border-[#8A898B]/25 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#4A9B9A]"
+                <div className="flex flex-col gap-2">
+                    {urlPreview ? (
+                        <div className="relative">
+                            <img
+                                src={urlPreview}
+                                alt="Pré-visualização da foto selecionada"
+                                className="w-full aspect-[4/3] object-cover rounded-lg border border-[#8A898B]/25"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setArquivo(null)}
+                                className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs rounded-full w-7 h-7 flex items-center justify-center"
+                                aria-label="Remover foto selecionada"
+                            >
+                                ✕
+                            </button>
                         </div>
-                        <div className="flex flex-col gap-1 flex-1">
-                            <label htmlFor="upload-longitude" className="text-[#8A898B] text-xs font-bold uppercase">Longitude *</label>
-                            <input
-                                id="upload-longitude"
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="-46.5731"
-                                value={longitude}
-                                onChange={(e) => setLongitude(e.target.value)}
-                                className="bg-[#16191C] border border-[#8A898B]/25 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#4A9B9A]"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-row gap-4 items-center">
-                        <button
-                            type="button"
-                            onClick={obterLocalizacaoAtual}
-                            className="text-[#4A9B9A] text-xs font-bold text-left hover:underline w-fit"
+                    ) : (
+                        <label
+                            htmlFor="upload-imagem"
+                            className="bg-[#16191C] border border-dashed border-[#8A898B]/40 rounded-lg px-3 py-10 text-center text-sm cursor-pointer hover:border-[#4A9B9A] transition-colors flex flex-col items-center gap-2"
                         >
-                            📍 Usar minha localização atual
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setMostrarMapa((v) => !v)}
-                            className="text-[#4A9B9A] text-xs font-bold text-left hover:underline w-fit"
-                        >
-                            🗺️ {mostrarMapa ? "Ocultar mapa" : "Escolher no mapa"}
-                        </button>
-                    </div>
-
-                    {mostrarMapa && (
-                        <LocationMapPicker
-                            latitude={latitude}
-                            longitude={longitude}
-                            onSelecionar={(lat, lng) => {
-                                setLatitude(String(lat))
-                                setLongitude(String(lng))
-                            }}
-                        />
-                    )}
-
-                    <div className="flex flex-col gap-1">
-                        <label htmlFor="upload-imagem" className="text-[#8A898B] text-xs font-bold uppercase">Imagem da planta *</label>
-                        <label htmlFor="upload-imagem" className="bg-[#16191C] border border-dashed border-[#8A898B]/40 rounded-lg px-3 py-4 text-center text-sm cursor-pointer hover:border-[#4A9B9A] transition-colors">
-                            <span className={nomeArquivo ? "text-white" : "text-[#8A898B]"}>
-                                {nomeArquivo || "Clique para escolher uma foto"}
-                            </span>
-                            <input
-                                id="upload-imagem"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                    const arquivoSelecionado = e.target.files?.[0] || null
-                                    setArquivo(arquivoSelecionado)
-                                    setNomeArquivo(arquivoSelecionado?.name || "")
-                                }}
-                            />
+                            <span className="text-2xl">📷</span>
+                            <span className="text-[#8A898B]">Clique para escolher uma foto da planta</span>
                         </label>
-                    </div>
+                    )}
+                    <input
+                        id="upload-imagem"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleSelecionarArquivo}
+                    />
+                    {!urlPreview && (
+                        <label
+                            htmlFor="upload-imagem"
+                            className="text-[#4A9B9A] text-xs font-bold text-center cursor-pointer hover:underline"
+                        >
+                            Selecionar arquivo
+                        </label>
+                    )}
+                </div>
 
-                    <div className="flex flex-row gap-3 justify-end pt-2">
-                        <button
-                            type="button"
-                            onClick={onFechar}
-                            disabled={enviando}
-                            className="text-[#8A898B] hover:text-white text-sm font-bold px-4 py-2 disabled:opacity-40"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={enviando}
-                            className="bg-[#4A9B9A] hover:bg-[#3d8483] text-white text-sm font-bold rounded-xl px-4 py-2 disabled:opacity-60"
-                        >
-                            {enviando ? "Enviando…" : "Adicionar captura"}
-                        </button>
-                    </div>
-                </form>
+                <div className="flex flex-row gap-3 justify-end pt-2">
+                    <button
+                        type="button"
+                        onClick={onFechar}
+                        disabled={enviando}
+                        className="text-[#8A898B] hover:text-white text-sm font-bold px-4 py-2 disabled:opacity-40"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleEnviar}
+                        disabled={enviando}
+                        className="bg-[#4A9B9A] hover:bg-[#3d8483] text-white text-sm font-bold rounded-xl px-4 py-2 disabled:opacity-60"
+                    >
+                        {enviando ? "Enviando…" : "Adicionar captura"}
+                    </button>
+                </div>
             </div>
         </div>
     )

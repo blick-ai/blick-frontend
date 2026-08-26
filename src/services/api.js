@@ -90,6 +90,7 @@ function normalizarResumo(item) {
         longitude: item.longitude,
         alertaEmitido: campo(item, "alertaEmitido", "alerta_emitido"),
         imagemUrl: campo(item, "imagemUrl", "imagem_url"),
+        origem: item.origem || "rover",
     }
 }
 
@@ -125,9 +126,14 @@ function normalizarDetalhe(item) {
         erroDetalhes: campo(item, "erroDetalhes", "erro_detalhes"),
         alertaEmitido: campo(item, "alertaEmitido", "alerta_emitido"),
         alertaEmitidoEm: campo(item, "alertaEmitidoEm", "alerta_emitido_em"),
+        origem: item.origem || "rover",
     }
 }
 
+// quando "Todas" esta selecionado (sem statusGeral escolhido), a lista
+// so mostra plantas de milho classificadas com sucesso — nao pendente,
+// erro ou nao_milho. O backend nao tem como pedir "qualquer uma dessas
+// 3 classes" numa chamada so, entao busca as 3 separadas e junta aqui.
 const STATUS_SAUDE_MILHO = ["saudavel", "praga", "doenca"]
 
 export async function listarCapturas({
@@ -259,6 +265,14 @@ export async function obterPontosMapaCalor(plantacaoId) {
         }))
 }
 
+/**
+ * Envia uma captura nova via upload manual (usado pelo modal de upload
+ * do dashboard) — reaproveita o mesmo POST /capturas usado pelo Klar.
+ * modelo_versao_borda/confianca_borda ficam de fora de proposito: sao
+ * metadados do dispositivo de borda (Jetson), que nao existem quando o
+ * upload e manual — o backend ja trata esses dois como opcionais (o
+ * mesmo fluxo de upload manual via script ja funcionou sem eles).
+ */
 export async function enviarCaptura({ diaMesAno, latitude, longitude, imagemBase64 }) {
     const resposta = await apiFetch("/capturas", {
         method: "POST",
@@ -269,7 +283,22 @@ export async function enviarCaptura({ diaMesAno, latitude, longitude, imagemBase
             imagem_base64: imagemBase64,
         }),
     })
-    limparCacheListagem() 
+    limparCacheListagem() // uma captura nova invalida a listagem em cache
+    return resposta
+}
+
+/**
+ * Upload manual simplificado — usado pelo modal "Carregar Captura" do
+ * dashboard. So a foto: sem data (vem do EXIF da propria imagem, lido
+ * pelo backend) e sem coordenadas (quem faz upload manual ja sabe onde
+ * tirou a foto).
+ */
+export async function enviarCapturaSimples({ imagemBase64 }) {
+    const resposta = await apiFetch("/capturas/upload-simples", {
+        method: "POST",
+        body: JSON.stringify({ imagem_base64: imagemBase64 }),
+    })
+    limparCacheListagem()
     return resposta
 }
 
