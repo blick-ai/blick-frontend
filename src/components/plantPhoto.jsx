@@ -17,6 +17,7 @@ export default function PlantPhoto({
     longitude,
     alertaEmitido,
     imagemUrl,
+    origem,
     selected,
     onSelect,
 }) {
@@ -43,6 +44,14 @@ export default function PlantPhoto({
                                 ALERTA
                             </span>
                         )}
+                        <span
+                            className={`text-[9px] font-bold rounded-full px-2 py-0.5 shrink-0 ${origem === "manual"
+                                    ? "bg-[#4A9B9A]/20 text-[#4A9B9A]"
+                                    : "bg-[#8A898B]/20 text-[#8A898B]"
+                                }`}
+                        >
+                            {origem === "manual" ? "📷 MANUAL" : "🚜 ROVER"}
+                        </span>
                     </div>
                 </div>
                 <div className="flex flex-row flex-wrap gap-x-2 gap-y-0.5 text-white text-ss sm:text-sm">
