@@ -66,7 +66,13 @@ async function apiFetch(path, options = {}) {
 
     if (!response.ok) {
         const erro = await response.json().catch(() => ({}))
-        throw new Error(erro?.detail || `Erro ${response.status} ao consultar a API`)
+        // erro de validacao do FastAPI (422) manda "detail" como uma
+        // LISTA de objetos, nao uma string — sem tratar isso, vira
+        // "[object Object]" na tela (era exatamente esse o bug)
+        const mensagem = Array.isArray(erro?.detail)
+            ? erro.detail.map((d) => d.msg || JSON.stringify(d)).join("; ")
+            : erro?.detail || `Erro ${response.status} ao consultar a API`
+        throw new Error(mensagem)
     }
 
     return response.json()
@@ -170,15 +176,40 @@ export async function listarCapturas({
     return resultado
 }
 
+const TAMANHO_MAXIMO_BACKEND = 100 // limite real que o backend aceita por chamada (validado em routes.py, le=100)
+
 async function listarCapturasMultiStatus({ pagina, tamanhoPagina, origem, dataInicio, dataFim, plantacaoId, valores }) {
     const chaveParams = { pagina, tamanhoPagina, status: undefined, statusGeral: undefined, origem, dataInicio, dataFim, plantacaoId }
     const itensNecessarios = pagina * tamanhoPagina
 
-    const respostas = await Promise.all(
-        valores.map((statusGeral) =>
-            listarCapturas({ statusGeral, origem, tamanhoPagina: itensNecessarios, pagina: 1, dataInicio, dataFim, plantacaoId })
+    // busca CADA status em blocos de no maximo 100 itens — nunca pede
+    // mais que o backend aceita numa chamada so. Paginas rasas (ate ~12,
+    // com tamanhoPagina=8) cabem numa unica chamada; paginas mais fundas
+    // disparam varias chamadas em paralelo, cada uma dentro do limite.
+    async function buscarStatusCompleto(statusGeral) {
+        if (itensNecessarios <= TAMANHO_MAXIMO_BACKEND) {
+            const resultado = await listarCapturas({
+                statusGeral, origem, tamanhoPagina: itensNecessarios, pagina: 1, dataInicio, dataFim, plantacaoId,
+            })
+            return resultado
+        }
+
+        const numeroDeBlocos = Math.ceil(itensNecessarios / TAMANHO_MAXIMO_BACKEND)
+        const respostas = await Promise.all(
+            Array.from({ length: numeroDeBlocos }, (_, indice) =>
+                listarCapturas({
+                    statusGeral, origem, tamanhoPagina: TAMANHO_MAXIMO_BACKEND,
+                    pagina: indice + 1, dataInicio, dataFim, plantacaoId,
+                })
+            )
         )
-    )
+        return {
+            capturas: respostas.flatMap((r) => r.capturas),
+            total: respostas[0]?.total ?? 0,
+        }
+    }
+
+    const respostas = await Promise.all(valores.map(buscarStatusCompleto))
 
     const todasCapturas = respostas.flatMap((r) => r.capturas)
     todasCapturas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
